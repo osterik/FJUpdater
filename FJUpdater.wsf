@@ -1,0 +1,8 @@
+<job id="IncludeExample">
+   <script language="VBScript" src="FJUpdater_config.vbs" />
+   <script language="VBScript" src="FJUpdater_main.vbs" />
+   <script language="VBScript">
+	' Call the main program
+	Main()
+  </script>
+</job>
