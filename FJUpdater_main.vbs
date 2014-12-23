@@ -6,54 +6,54 @@
 ' E-MAIL  : osterik@gmail.com
 ' DATE    : 14.09.2014
 ' NAME    : FJUpdater_main.vbs
-' COMMENT : Скрипт для проверки актуальности установленных на компьютере версий Java&Flash
-'          и автоматического обновления (через интернет(HTTP) или локальную сеть(SMB)) при необходимости.
-'          Скрипт может сохранять установщики актуальной версии Java&Flash в указанные папки (+ файл с номером версии),
-'          что даёт возможность строить механизм автоматического развёртывания обновлений Java&Flash через GPO
-'          (стартап скрипт компьютеров).
-'          Об ошибках и результатах своей деятельности может присылать отчёт на почту.
+' COMMENT : РЎРєСЂРёРїС‚ РґР»СЏ РїСЂРѕРІРµСЂРєРё Р°РєС‚СѓР°Р»СЊРЅРѕСЃС‚Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹С… РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ РІРµСЂСЃРёР№ Java&Flash
+'          Рё Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРіРѕ РѕР±РЅРѕРІР»РµРЅРёСЏ (С‡РµСЂРµР· РёРЅС‚РµСЂРЅРµС‚(HTTP) РёР»Рё Р»РѕРєР°Р»СЊРЅСѓСЋ СЃРµС‚СЊ(SMB)) РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё.
+'          РЎРєСЂРёРїС‚ РјРѕР¶РµС‚ СЃРѕС…СЂР°РЅСЏС‚СЊ СѓСЃС‚Р°РЅРѕРІС‰РёРєРё Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё Java&Flash РІ СѓРєР°Р·Р°РЅРЅС‹Рµ РїР°РїРєРё (+ С„Р°Р№Р» СЃ РЅРѕРјРµСЂРѕРј РІРµСЂСЃРёРё),
+'          С‡С‚Рѕ РґР°С‘С‚ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ СЃС‚СЂРѕРёС‚СЊ РјРµС…Р°РЅРёР·Рј Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРіРѕ СЂР°Р·РІС‘СЂС‚С‹РІР°РЅРёСЏ РѕР±РЅРѕРІР»РµРЅРёР№ Java&Flash С‡РµСЂРµР· GPO
+'          (СЃС‚Р°СЂС‚Р°Рї СЃРєСЂРёРїС‚ РєРѕРјРїСЊСЋС‚РµСЂРѕРІ).
+'          РћР± РѕС€РёР±РєР°С… Рё СЂРµР·СѓР»СЊС‚Р°С‚Р°С… СЃРІРѕРµР№ РґРµСЏС‚РµР»СЊРЅРѕСЃС‚Рё РјРѕР¶РµС‚ РїСЂРёСЃС‹Р»Р°С‚СЊ РѕС‚С‡С‘С‚ РЅР° РїРѕС‡С‚Сѓ.
 '                                                                                                                       
-'При запуске без параметров просто выполняет обновление установленных плагинов через интернет
+'РџСЂРё Р·Р°РїСѓСЃРєРµ Р±РµР· РїР°СЂР°РјРµС‚СЂРѕРІ РїСЂРѕСЃС‚Рѕ РІС‹РїРѕР»РЅСЏРµС‚ РѕР±РЅРѕРІР»РµРЅРёРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹С… РїР»Р°РіРёРЅРѕРІ С‡РµСЂРµР· РёРЅС‚РµСЂРЅРµС‚
 '
-'Параметры командной строки:
-'/mail:1 = отправлять почту при ошибках работы или при наличии обновлений 
-'/mail:0 = тихий режим (default)
+'РџР°СЂР°РјРµС‚СЂС‹ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРё:
+'/mail:1 = РѕС‚РїСЂР°РІР»СЏС‚СЊ РїРѕС‡С‚Сѓ РїСЂРё РѕС€РёР±РєР°С… СЂР°Р±РѕС‚С‹ РёР»Рё РїСЂРё РЅР°Р»РёС‡РёРё РѕР±РЅРѕРІР»РµРЅРёР№ 
+'/mail:0 = С‚РёС…РёР№ СЂРµР¶РёРј (default)
 '
-'/debug:0 = не выводить ничего
-'/debug:1 = записывать только сообщения о выполняемых действиях (default) и ошибки
-'/debug:2 = записывать подробные сообщения 
-'/debug:3 = записывать детальные сообщения о вызываемых функцияих и их парметрах
+'/debug:0 = РЅРµ РІС‹РІРѕРґРёС‚СЊ РЅРёС‡РµРіРѕ
+'/debug:1 = Р·Р°РїРёСЃС‹РІР°С‚СЊ С‚РѕР»СЊРєРѕ СЃРѕРѕР±С‰РµРЅРёСЏ Рѕ РІС‹РїРѕР»РЅСЏРµРјС‹С… РґРµР№СЃС‚РІРёСЏС… (default) Рё РѕС€РёР±РєРё
+'/debug:2 = Р·Р°РїРёСЃС‹РІР°С‚СЊ РїРѕРґСЂРѕР±РЅС‹Рµ СЃРѕРѕР±С‰РµРЅРёСЏ 
+'/debug:3 = Р·Р°РїРёСЃС‹РІР°С‚СЊ РґРµС‚Р°Р»СЊРЅС‹Рµ СЃРѕРѕР±С‰РµРЅРёСЏ Рѕ РІС‹Р·С‹РІР°РµРјС‹С… С„СѓРЅРєС†РёСЏРёС… Рё РёС… РїР°СЂРјРµС‚СЂР°С…
 '
-'/WebMode:1 = проверять обновления напрямую из интернета (default)
-'/WebMode:0 = из локальной папки (csInstallerPath)
+'/WebMode:1 = РїСЂРѕРІРµСЂСЏС‚СЊ РѕР±РЅРѕРІР»РµРЅРёСЏ РЅР°РїСЂСЏРјСѓСЋ РёР· РёРЅС‚РµСЂРЅРµС‚Р° (default)
+'/WebMode:0 = РёР· Р»РѕРєР°Р»СЊРЅРѕР№ РїР°РїРєРё (csInstallerPath)
 '
-'/WEBModeSaveInstall:1 = сохранять обновления в локальную папку (csInstallerPath)
-'/WEBModeSaveInstall:0 = сохранять обновления в %TEMP% (default)
-'ключ /WEBModeSaveInstall имеет смысл только при /WEBMode:1
+'/WEBModeSaveInstall:1 = СЃРѕС…СЂР°РЅСЏС‚СЊ РѕР±РЅРѕРІР»РµРЅРёСЏ РІ Р»РѕРєР°Р»СЊРЅСѓСЋ РїР°РїРєСѓ (csInstallerPath)
+'/WEBModeSaveInstall:0 = СЃРѕС…СЂР°РЅСЏС‚СЊ РѕР±РЅРѕРІР»РµРЅРёСЏ РІ %TEMP% (default)
+'РєР»СЋС‡ /WEBModeSaveInstall РёРјРµРµС‚ СЃРјС‹СЃР» С‚РѕР»СЊРєРѕ РїСЂРё /WEBMode:1
 '
-'/WEBModeSaveInstallForce = особый режим, принудительно скачать последение версии установщиков
-'и сохранить в локальную папку (csInstallerPath). не проверяет установленные версии плагинов.
-'Используется на компьютере администратора при запуске механизма автоматического развёртывания обновлений 
+'/WEBModeSaveInstallForce = РѕСЃРѕР±С‹Р№ СЂРµР¶РёРј, РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ СЃРєР°С‡Р°С‚СЊ РїРѕСЃР»РµРґРµРЅРёРµ РІРµСЂСЃРёРё СѓСЃС‚Р°РЅРѕРІС‰РёРєРѕРІ
+'Рё СЃРѕС…СЂР°РЅРёС‚СЊ РІ Р»РѕРєР°Р»СЊРЅСѓСЋ РїР°РїРєСѓ (csInstallerPath). РЅРµ РїСЂРѕРІРµСЂСЏРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹Рµ РІРµСЂСЃРёРё РїР»Р°РіРёРЅРѕРІ.
+'РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР° РїСЂРё Р·Р°РїСѓСЃРєРµ РјРµС…Р°РЅРёР·РјР° Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРіРѕ СЂР°Р·РІС‘СЂС‚С‹РІР°РЅРёСЏ РѕР±РЅРѕРІР»РµРЅРёР№ 
 '
-'/MailTest = особый режим, проверка настроек отправки почты, присылает тестовое сообщение
+'/MailTest = РѕСЃРѕР±С‹Р№ СЂРµР¶РёРј, РїСЂРѕРІРµСЂРєР° РЅР°СЃС‚СЂРѕРµРє РѕС‚РїСЂР°РІРєРё РїРѕС‡С‚С‹, РїСЂРёСЃС‹Р»Р°РµС‚ С‚РµСЃС‚РѕРІРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ
 '
-'/ShowVersion[:comp] = особый режим, выводит номер весий установленных на компьютере плагинов Java & Flash
-' При запуске без параметров - на локальном компьютере, если есть параметр - он трактуется как имя\адрес компьютера
+'/ShowVersion[:comp] = РѕСЃРѕР±С‹Р№ СЂРµР¶РёРј, РІС‹РІРѕРґРёС‚ РЅРѕРјРµСЂ РІРµСЃРёР№ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹С… РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ РїР»Р°РіРёРЅРѕРІ Java & Flash
+' РџСЂРё Р·Р°РїСѓСЃРєРµ Р±РµР· РїР°СЂР°РјРµС‚СЂРѕРІ - РЅР° Р»РѕРєР°Р»СЊРЅРѕРј РєРѕРјРїСЊСЋС‚РµСЂРµ, РµСЃР»Рё РµСЃС‚СЊ РїР°СЂР°РјРµС‚СЂ - РѕРЅ С‚СЂР°РєС‚СѓРµС‚СЃСЏ РєР°Рє РёРјСЏ\Р°РґСЂРµСЃ РєРѕРјРїСЊСЋС‚РµСЂР°
 '
-'Если при разборе параметров встречается параметр с примечанием "особый режим", то он выполняется немедленно,
-'с учётом уже обработанных модификаторов (mail & debug) и производится выход.
+'Р•СЃР»Рё РїСЂРё СЂР°Р·Р±РѕСЂРµ РїР°СЂР°РјРµС‚СЂРѕРІ РІСЃС‚СЂРµС‡Р°РµС‚СЃСЏ РїР°СЂР°РјРµС‚СЂ СЃ РїСЂРёРјРµС‡Р°РЅРёРµРј "РѕСЃРѕР±С‹Р№ СЂРµР¶РёРј", С‚Рѕ РѕРЅ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РЅРµРјРµРґР»РµРЅРЅРѕ,
+'СЃ СѓС‡С‘С‚РѕРј СѓР¶Рµ РѕР±СЂР°Р±РѕС‚Р°РЅРЅС‹С… РјРѕРґРёС„РёРєР°С‚РѕСЂРѕРІ (mail & debug) Рё РїСЂРѕРёР·РІРѕРґРёС‚СЃСЏ РІС‹С…РѕРґ.
 '
-'/? или /help = справка 
+'/? РёР»Рё /help = СЃРїСЂР°РІРєР° 
 '-----------------------------------------------------------------------------------------------------------------------
 '[HELP_END]
-' строка "'[HELP_END]" используется как ограничитель для функциии вывода справки
+' СЃС‚СЂРѕРєР° "'[HELP_END]" РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РєР°Рє РѕРіСЂР°РЅРёС‡РёС‚РµР»СЊ РґР»СЏ С„СѓРЅРєС†РёРёРё РІС‹РІРѕРґР° СЃРїСЂР°РІРєРё
 
 Option Explicit
 
-Const IsDebug = 1 ' флаг отладки
+Const IsDebug = 1 ' С„Р»Р°Рі РѕС‚Р»Р°РґРєРё
 If IsDebug <> 1 then On Error Resume Next
 
-' имена файлов с установщиками\номером актуальной версии, которые лежат в локальном репозитории
+' РёРјРµРЅР° С„Р°Р№Р»РѕРІ СЃ СѓСЃС‚Р°РЅРѕРІС‰РёРєР°РјРё\РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё, РєРѕС‚РѕСЂС‹Рµ Р»РµР¶Р°С‚ РІ Р»РѕРєР°Р»СЊРЅРѕРј СЂРµРїРѕР·РёС‚РѕСЂРёРё
 Const csJavaInstaller		= "java_installer.exe"
 Const csJavaInstaller64		= "java_installer64.exe"
 Const csJavaInstallerVers	= "java_current.txt"
@@ -63,88 +63,88 @@ Const csFlashAInstaller		= "flashA_installer.exe"	' Flash ActiveX (IE)
 Const csFlashAInstallerVers	= "flashA_current.txt"
 
 '===================================================================================================
-' где смотреть номера актуальных версий ((при /WEBMode+)
+' РіРґРµ СЃРјРѕС‚СЂРµС‚СЊ РЅРѕРјРµСЂР° Р°РєС‚СѓР°Р»СЊРЅС‹С… РІРµСЂСЃРёР№ ((РїСЂРё /WEBMode+)
 Const csJavaVersionCurrentLnk = "http://www.java.com/applet/JreCurrentVersion2.txt"
 Const csFlashVersionCurrentLnk = "http://www.adobe.com/software/flash/about/"
-' и где искать\качать инсталляшки
+' Рё РіРґРµ РёСЃРєР°С‚СЊ\РєР°С‡Р°С‚СЊ РёРЅСЃС‚Р°Р»Р»СЏС€РєРё
 Const csJavaInstallerLink   = "http://java.com/en/download/windows_manual.jsp"
-Const csFlashPInstallerLink = "http://download.macromedia.com/pub/flashplayer/current/support/install_flash_player.exe"
-Const csFlashAInstallerLink = "http://download.macromedia.com/pub/flashplayer/current/support/install_flash_player_ax.exe"
-' ключи запуска установщиков
+Const csFlashPInstallerLink = "http://fpdownload.macromedia.com/get/flashplayer/current/licensing/win/install_flash_player_16_plugin.exe"
+Const csFlashAInstallerLink = "http://fpdownload.macromedia.com/get/flashplayer/current/licensing/win/install_flash_player_16_active_x.exe"
+' РєР»СЋС‡Рё Р·Р°РїСѓСЃРєР° СѓСЃС‚Р°РЅРѕРІС‰РёРєРѕРІ
 Const csJavaInstallerParams = "/s /v /qn IEXPLORER=1 MOZILLA=1 REBOOT=ReallySuppress JAVAUPDATE=0 WEBSTARTICON=0"
 Const csFlashInstallerParams = "/install"
 
 '===================================================================================================
-' для доступа к реестру, функция RegRead
+' РґР»СЏ РґРѕСЃС‚СѓРїР° Рє СЂРµРµСЃС‚СЂСѓ, С„СѓРЅРєС†РёСЏ RegRead
 Const HKEY_CLASSES_ROOT  	= &H80000000
 Const HKEY_CURRENT_USER 	= &H80000001
 Const HKEY_LOCAL_MACHINE 	= &H80000002
 Const HKEY_USERS 		= &H80000003
 Const HKEY_CURRENT_CONFIG  	= &H80000005
 
-' глобальные настройки, могут быть переопределены из командной строки
-Dim glbMail 					' /mail+ = отправлять почту при ошибках работы или при наличии обновлений 
-								' /mail- = тихий режим (default)
-Dim gliDebug					' /debug0 = не выводить ничего
-								' /debug1 = записывать только сообщения о выполняемых действиях (default)
-								' /debug2 = записывать подробные сообщения 
-								' /debug3 = записывать детальные сообщения о вызываемых функцияих и их парметрах
-Dim glbWEBMode 					' /WEBMode+ = проверять обновления напрямую из интернета (default)
-								' /WEBMode- = из локальной папки (csInstallerPath)
-Dim glbWEBModeSaveInstall		' имеет смысл только при /WEBMode+
-								' /WEBModeSaveInstall+ = сохранять обновления в локальную папку (csInstallerPath)
-								' /WEBModeSaveInstall- =  сохранять обновления в %TEMP% (default)
-'Dim glbComputer					' имя(или адрес) компьютера, на котором проверяем версии плагинов
-' глобальные переменные
-Dim sInstallerPath							' путь сохранения инсталляшек при /WEBModeSaveInstall+
-Dim sLog 									' общий лог, отсылается на почту при ошибках или появлении обновления
-Dim bNeedToSendLog							' флаг необходимости отправки лога на почту
-Dim sJavaNativeUpdateStatus, sJavaWoW6432UpdateStatus, sFlashAUpdateStatus, sFlashPUpdateStatus		' итоговый статус операций обновления
-Dim sJavaVersionCurrent, sFlashPVersionCurrent, sFlashAVersionCurrent ' номер версии при получении обновлений, используется для записи файла с номером версии
+' РіР»РѕР±Р°Р»СЊРЅС‹Рµ РЅР°СЃС‚СЂРѕР№РєРё, РјРѕРіСѓС‚ Р±С‹С‚СЊ РїРµСЂРµРѕРїСЂРµРґРµР»РµРЅС‹ РёР· РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРё
+Dim glbMail 					' /mail+ = РѕС‚РїСЂР°РІР»СЏС‚СЊ РїРѕС‡С‚Сѓ РїСЂРё РѕС€РёР±РєР°С… СЂР°Р±РѕС‚С‹ РёР»Рё РїСЂРё РЅР°Р»РёС‡РёРё РѕР±РЅРѕРІР»РµРЅРёР№ 
+								' /mail- = С‚РёС…РёР№ СЂРµР¶РёРј (default)
+Dim gliDebug					' /debug0 = РЅРµ РІС‹РІРѕРґРёС‚СЊ РЅРёС‡РµРіРѕ
+								' /debug1 = Р·Р°РїРёСЃС‹РІР°С‚СЊ С‚РѕР»СЊРєРѕ СЃРѕРѕР±С‰РµРЅРёСЏ Рѕ РІС‹РїРѕР»РЅСЏРµРјС‹С… РґРµР№СЃС‚РІРёСЏС… (default)
+								' /debug2 = Р·Р°РїРёСЃС‹РІР°С‚СЊ РїРѕРґСЂРѕР±РЅС‹Рµ СЃРѕРѕР±С‰РµРЅРёСЏ 
+								' /debug3 = Р·Р°РїРёСЃС‹РІР°С‚СЊ РґРµС‚Р°Р»СЊРЅС‹Рµ СЃРѕРѕР±С‰РµРЅРёСЏ Рѕ РІС‹Р·С‹РІР°РµРјС‹С… С„СѓРЅРєС†РёСЏРёС… Рё РёС… РїР°СЂРјРµС‚СЂР°С…
+Dim glbWEBMode 					' /WEBMode+ = РїСЂРѕРІРµСЂСЏС‚СЊ РѕР±РЅРѕРІР»РµРЅРёСЏ РЅР°РїСЂСЏРјСѓСЋ РёР· РёРЅС‚РµСЂРЅРµС‚Р° (default)
+								' /WEBMode- = РёР· Р»РѕРєР°Р»СЊРЅРѕР№ РїР°РїРєРё (csInstallerPath)
+Dim glbWEBModeSaveInstall		' РёРјРµРµС‚ СЃРјС‹СЃР» С‚РѕР»СЊРєРѕ РїСЂРё /WEBMode+
+								' /WEBModeSaveInstall+ = СЃРѕС…СЂР°РЅСЏС‚СЊ РѕР±РЅРѕРІР»РµРЅРёСЏ РІ Р»РѕРєР°Р»СЊРЅСѓСЋ РїР°РїРєСѓ (csInstallerPath)
+								' /WEBModeSaveInstall- =  СЃРѕС…СЂР°РЅСЏС‚СЊ РѕР±РЅРѕРІР»РµРЅРёСЏ РІ %TEMP% (default)
+'Dim glbComputer					' РёРјСЏ(РёР»Рё Р°РґСЂРµСЃ) РєРѕРјРїСЊСЋС‚РµСЂР°, РЅР° РєРѕС‚РѕСЂРѕРј РїСЂРѕРІРµСЂСЏРµРј РІРµСЂСЃРёРё РїР»Р°РіРёРЅРѕРІ
+' РіР»РѕР±Р°Р»СЊРЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ
+Dim sInstallerPath							' РїСѓС‚СЊ СЃРѕС…СЂР°РЅРµРЅРёСЏ РёРЅСЃС‚Р°Р»Р»СЏС€РµРє РїСЂРё /WEBModeSaveInstall+
+Dim sLog 									' РѕР±С‰РёР№ Р»РѕРі, РѕС‚СЃС‹Р»Р°РµС‚СЃСЏ РЅР° РїРѕС‡С‚Сѓ РїСЂРё РѕС€РёР±РєР°С… РёР»Рё РїРѕСЏРІР»РµРЅРёРё РѕР±РЅРѕРІР»РµРЅРёСЏ
+Dim bNeedToSendLog							' С„Р»Р°Рі РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РѕС‚РїСЂР°РІРєРё Р»РѕРіР° РЅР° РїРѕС‡С‚Сѓ
+Dim sJavaNativeUpdateStatus, sJavaWoW6432UpdateStatus, sFlashAUpdateStatus, sFlashPUpdateStatus		' РёС‚РѕРіРѕРІС‹Р№ СЃС‚Р°С‚СѓСЃ РѕРїРµСЂР°С†РёР№ РѕР±РЅРѕРІР»РµРЅРёСЏ
+Dim sJavaVersionCurrent, sFlashPVersionCurrent, sFlashAVersionCurrent ' РЅРѕРјРµСЂ РІРµСЂСЃРёРё РїСЂРё РїРѕР»СѓС‡РµРЅРёРё РѕР±РЅРѕРІР»РµРЅРёР№, РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РґР»СЏ Р·Р°РїРёСЃРё С„Р°Р№Р»Р° СЃ РЅРѕРјРµСЂРѕРј РІРµСЂСЃРёРё
 
 Sub Main
 	If IsDebug <> 1 then On Error Resume Next
 	
 	' Abort If the host is not cscript
 	If not IsHostCscript() then
-		call wscript.echo("Рекомендуется запускать данный скрипт с использованием CScript.")
-		'"Рекомендуется запускать данный скрипт с использованием CScript."  	& vbCRLF & vbCRLF &  
-		'"Для этого:"														& vbCRLF & vbCRLF & _
-		'"1. Используйте ""CScript " & WScript.ScriptName & " /параметры"" "	& vbCRLF & vbCRLF & _
-		'"или" 																& vbCRLF & vbCRLF & _
-		'"2. Замените  WScript на  CScript (может"									& vbCRLF & _
-		'"   Для этого выполните ""CScript //H:CScript //S"" "				& vbCRLF & _
-		'"   и запускайте скрипт """ & WScript.ScriptName & " /параметры""."	& vbCRLF
+		call wscript.echo("Р РµРєРѕРјРµРЅРґСѓРµС‚СЃСЏ Р·Р°РїСѓСЃРєР°С‚СЊ РґР°РЅРЅС‹Р№ СЃРєСЂРёРїС‚ СЃ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµРј CScript.")
+		'"Р РµРєРѕРјРµРЅРґСѓРµС‚СЃСЏ Р·Р°РїСѓСЃРєР°С‚СЊ РґР°РЅРЅС‹Р№ СЃРєСЂРёРїС‚ СЃ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµРј CScript."  	& vbCRLF & vbCRLF &  
+		'"Р”Р»СЏ СЌС‚РѕРіРѕ:"														& vbCRLF & vbCRLF & _
+		'"1. РСЃРїРѕР»СЊР·СѓР№С‚Рµ ""CScript " & WScript.ScriptName & " /РїР°СЂР°РјРµС‚СЂС‹"" "	& vbCRLF & vbCRLF & _
+		'"РёР»Рё" 																& vbCRLF & vbCRLF & _
+		'"2. Р—Р°РјРµРЅРёС‚Рµ  WScript РЅР°  CScript (РјРѕР¶РµС‚"									& vbCRLF & _
+		'"   Р”Р»СЏ СЌС‚РѕРіРѕ РІС‹РїРѕР»РЅРёС‚Рµ ""CScript //H:CScript //S"" "				& vbCRLF & _
+		'"   Рё Р·Р°РїСѓСЃРєР°Р№С‚Рµ СЃРєСЂРёРїС‚ """ & WScript.ScriptName & " /РїР°СЂР°РјРµС‚СЂС‹""."	& vbCRLF
 		wscript.quit
 	End If
 	
 	If bParseCommandLine = false Then
-		' не смогли разобрать параметры командной строки
+		' РЅРµ СЃРјРѕРіР»Рё СЂР°Р·РѕР±СЂР°С‚СЊ РїР°СЂР°РјРµС‚СЂС‹ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРё
 		Call WriteLog("Main, ERROR! can't parse command line switches!", 1)
 		Exit Sub 
 	End If
 	
 	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.6 (c) Ilya Kisleyko, osterik@gmail.com", 2)
 	
-	'путь сохранения инсталляшек...
+	'РїСѓС‚СЊ СЃРѕС…СЂР°РЅРµРЅРёСЏ РёРЅСЃС‚Р°Р»Р»СЏС€РµРє...
 	If glbWEBMode then 
 		If glbWEBModeSaveInstall Then
-			sInstallerPath = csInstallerPath		' ...при /WEBModeSaveInstall+
+			sInstallerPath = csInstallerPath		' ...РїСЂРё /WEBModeSaveInstall+
 		Else
-			sInstallerPath = sEnvGet("%temp%")		' ...при /WEBModeSaveInstall-
+			sInstallerPath = sEnvGet("%temp%")		' ...РїСЂРё /WEBModeSaveInstall-
 		End If
 	else
-		sInstallerPath = csInstallerPath			' ..при локальном режиме
+		sInstallerPath = csInstallerPath			' ..РїСЂРё Р»РѕРєР°Р»СЊРЅРѕРј СЂРµР¶РёРјРµ
 	End If
 	
-	' при необходимости добавляем слэш в конце рабочего каталога
+	' РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РґРѕР±Р°РІР»СЏРµРј СЃР»СЌС€ РІ РєРѕРЅС†Рµ СЂР°Р±РѕС‡РµРіРѕ РєР°С‚Р°Р»РѕРіР°
 	If Right(sInstallerPath,1) <> "\" Then 
 		sInstallerPath = sInstallerPath + "\"
 	End If
-	' пока нет необходимости отправлять логи на почту
+	' РїРѕРєР° РЅРµС‚ РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РѕС‚РїСЂР°РІР»СЏС‚СЊ Р»РѕРіРё РЅР° РїРѕС‡С‚Сѓ
 	bNeedToSendLog = false
 	
-	' статус операций
+	' СЃС‚Р°С‚СѓСЃ РѕРїРµСЂР°С†РёР№
 	sJavaNativeUpdateStatus   = "UNKNOWN"
 	sJavaWoW6432UpdateStatus  = "UNKNOWN"
 	sFlashAUpdateStatus       = "UNKNOWN"
@@ -152,40 +152,40 @@ Sub Main
 	
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("JavaNative - START",2)
-	' JAVA Native (32 on 32, 64 on 64) - сравним версии актуальную и установленную
-	' что принимать за актуальную версию ...
+	' JAVA Native (32 on 32, 64 on 64) - СЃСЂР°РІРЅРёРј РІРµСЂСЃРёРё Р°РєС‚СѓР°Р»СЊРЅСѓСЋ Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅСѓСЋ
+	' С‡С‚Рѕ РїСЂРёРЅРёРјР°С‚СЊ Р·Р° Р°РєС‚СѓР°Р»СЊРЅСѓСЋ РІРµСЂСЃРёСЋ ...
 	If glbWEBMode Then ' WWW
 		sJavaVersionCurrent = sJavaVersionWEBGet
-	Else               ' локальное хранилище
+	Else               ' Р»РѕРєР°Р»СЊРЅРѕРµ С…СЂР°РЅРёР»РёС‰Рµ
 		sJavaVersionCurrent = sJavaVersionLocalGet	
 	End If
 	If sJavaVersionCurrent <> "" then 
-		If  sJavaVersionInstalledGet(".") <> "" then ' на компьютере присутствует какая-то версия
+		If  sJavaVersionInstalledGet(".") <> "" then ' РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ РїСЂРёСЃСѓС‚СЃС‚РІСѓРµС‚ РєР°РєР°СЏ-С‚Рѕ РІРµСЂСЃРёСЏ
 			If sJavaVersionInstalledGet(".") <> sJavaVersionCurrent then
-				' не совпадают, обновляем
+				' РЅРµ СЃРѕРІРїР°РґР°СЋС‚, РѕР±РЅРѕРІР»СЏРµРј
 				Call WriteLog("WARNING! Installed and current Native(32 on 32, 64 on 64) Java version is NOT identical",1)
-				' надо будет отправить отчёт
+				' РЅР°РґРѕ Р±СѓРґРµС‚ РѕС‚РїСЂР°РІРёС‚СЊ РѕС‚С‡С‘С‚
 				bNeedToSendLog = True
 				If glbWEBMode Then
-					' получаем ссылку на скачку и скачиваем установщик
+					' РїРѕР»СѓС‡Р°РµРј СЃСЃС‹Р»РєСѓ РЅР° СЃРєР°С‡РєСѓ Рё СЃРєР°С‡РёРІР°РµРј СѓСЃС‚Р°РЅРѕРІС‰РёРє
 					If Is64BitSystem (".") = true then
 						Call HttpGetSave(sJavaGetLinkToDownload("64"), sInstallerPath & csJavaInstaller64) 
 					else
 						Call HttpGetSave(sJavaGetLinkToDownload("32"), sInstallerPath & csJavaInstaller) 
 					End If
 				End If
-				' устанавливаем
+				' СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј
 				If Is64BitSystem (".") = true then
 					Call myRun(sInstallerPath & csJavaInstaller64 & " " & csJavaInstallerParams)
 				else
 					Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
 				End If
 			
-				' повторно проверяем результат
+				' РїРѕРІС‚РѕСЂРЅРѕ РїСЂРѕРІРµСЂСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚
 				If sJavaVersionInstalledGet(".") = sJavaVersionCurrent then
 					sJavaNativeUpdateStatus = "SUCCESS"
 					If glbWEBModeSaveInstall then
-						' записываем файл с номером актуальной версии установщика
+						' Р·Р°РїРёСЃС‹РІР°РµРј С„Р°Р№Р» СЃ РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё СѓСЃС‚Р°РЅРѕРІС‰РёРєР°
 						Call myRun("cmd /c echo " & sJavaVersionCurrent & "> " & sInstallerPath & csJavaInstallerVers)
 					End If
 				Else
@@ -201,32 +201,32 @@ Sub Main
 	
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("JavaWoW6432 - START",2)
-	' JAVA 32bit on 64bit system) - сравним версии актуальную и установленную
-	' что принимать за актуальную версию ...
+	' JAVA 32bit on 64bit system) - СЃСЂР°РІРЅРёРј РІРµСЂСЃРёРё Р°РєС‚СѓР°Р»СЊРЅСѓСЋ Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅСѓСЋ
+	' С‡С‚Рѕ РїСЂРёРЅРёРјР°С‚СЊ Р·Р° Р°РєС‚СѓР°Р»СЊРЅСѓСЋ РІРµСЂСЃРёСЋ ...
 	If glbWEBMode Then ' WWW
 		sJavaVersionCurrent = sJavaVersionWEBGet
-	Else               ' локальное хранилище
+	Else               ' Р»РѕРєР°Р»СЊРЅРѕРµ С…СЂР°РЅРёР»РёС‰Рµ
 		sJavaVersionCurrent = sJavaVersionLocalGet	
 	End If
 	If sJavaVersionCurrent <> "" then 
-		If  sJavaWoW6432VersionInstalledGet(".") <> "" then ' на компьютере присутствует какая-то версия
+		If  sJavaWoW6432VersionInstalledGet(".") <> "" then ' РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ РїСЂРёСЃСѓС‚СЃС‚РІСѓРµС‚ РєР°РєР°СЏ-С‚Рѕ РІРµСЂСЃРёСЏ
 			If sJavaWoW6432VersionInstalledGet(".") <> sJavaVersionCurrent then
-				' не совпадают, обновляем
+				' РЅРµ СЃРѕРІРїР°РґР°СЋС‚, РѕР±РЅРѕРІР»СЏРµРј
 				Call WriteLog("WARNING! Installed and current WoW6432(32bit Java on 64bit OS) Java version is NOT identical",1)
-				' надо будет отправить отчёт
+				' РЅР°РґРѕ Р±СѓРґРµС‚ РѕС‚РїСЂР°РІРёС‚СЊ РѕС‚С‡С‘С‚
 				bNeedToSendLog = True
 				If glbWEBMode Then
-					' получаем ссылку на скачку и скачиваем установщик
+					' РїРѕР»СѓС‡Р°РµРј СЃСЃС‹Р»РєСѓ РЅР° СЃРєР°С‡РєСѓ Рё СЃРєР°С‡РёРІР°РµРј СѓСЃС‚Р°РЅРѕРІС‰РёРє
 					Call HttpGetSave(sJavaGetLinkToDownload, sInstallerPath & csJavaInstaller) 
 				End If
-				' устанавливаем
+				' СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј
 				Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
 				
-				' повторно проверяем результат
+				' РїРѕРІС‚РѕСЂРЅРѕ РїСЂРѕРІРµСЂСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚
 				If sJavaWoW6432VersionInstalledGet(".") = sJavaVersionCurrent then
 					sJavaWoW6432UpdateStatus = "SUCCESS"
 					If glbWEBModeSaveInstall then
-						' записываем файл с номером актуальной версии установщика
+						' Р·Р°РїРёСЃС‹РІР°РµРј С„Р°Р№Р» СЃ РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё СѓСЃС‚Р°РЅРѕРІС‰РёРєР°
 						Call myRun("cmd /c echo " & sJavaVersionCurrent & "> " & sInstallerPath & csJavaInstallerVers)
 					End If
 				Else
@@ -242,8 +242,8 @@ Sub Main
 	
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("FlashActiveX - START",2)
-	' FlashActiveX - сравним версии актуальную и установленную
-	' что принимать за актуальную версию ...	
+	' FlashActiveX - СЃСЂР°РІРЅРёРј РІРµСЂСЃРёРё Р°РєС‚СѓР°Р»СЊРЅСѓСЋ Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅСѓСЋ
+	' С‡С‚Рѕ РїСЂРёРЅРёРјР°С‚СЊ Р·Р° Р°РєС‚СѓР°Р»СЊРЅСѓСЋ РІРµСЂСЃРёСЋ ...	
 	If glbWEBMode Then
 		sFlashAVersionCurrent = sFlashVersionWEBGet("A")
 	Else
@@ -251,22 +251,22 @@ Sub Main
 	End If
 	
 	If sFlashAVersionCurrent <> "" then 
-		If sFlashVersionInstalledGet(".", "A") <> "" then ' на компьютере присутствует какая-то версия
+		If sFlashVersionInstalledGet(".", "A") <> "" then ' РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ РїСЂРёСЃСѓС‚СЃС‚РІСѓРµС‚ РєР°РєР°СЏ-С‚Рѕ РІРµСЂСЃРёСЏ
 			If sFlashVersionInstalledGet(".", "A") <> sFlashAVersionCurrent then
-				' не совпадают, обновляем
+				' РЅРµ СЃРѕРІРїР°РґР°СЋС‚, РѕР±РЅРѕРІР»СЏРµРј
 				Call WriteLog("WARNING! Installed and current FlashActiveX version is NOT identical",1)
-				' надо будет отправить отчёт
+				' РЅР°РґРѕ Р±СѓРґРµС‚ РѕС‚РїСЂР°РІРёС‚СЊ РѕС‚С‡С‘С‚
 				bNeedToSendLog = True
 				If glbWEBMode Then
-					' получаем ссылку на скачку и скачиваем установщик
+					' РїРѕР»СѓС‡Р°РµРј СЃСЃС‹Р»РєСѓ РЅР° СЃРєР°С‡РєСѓ Рё СЃРєР°С‡РёРІР°РµРј СѓСЃС‚Р°РЅРѕРІС‰РёРє
 					Call HttpGetSave(csFlashAInstallerLink, sInstallerPath & csFlashAInstaller)
 				End If
-				' устанавливаем
+				' СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј
 				Call myRun(sInstallerPath & csFlashAInstaller & " " & csFlashInstallerParams)
-				' повторно проверяем результат
+				' РїРѕРІС‚РѕСЂРЅРѕ РїСЂРѕРІРµСЂСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚
 				If sFlashVersionInstalledGet(".", "A") = sFlashAVersionCurrent then
 					sFlashAUpdateStatus = "SUCCESS"
-					' записываем файл с номером актуальной версии установщика
+					' Р·Р°РїРёСЃС‹РІР°РµРј С„Р°Р№Р» СЃ РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё СѓСЃС‚Р°РЅРѕРІС‰РёРєР°
 					Call myRun("cmd /c echo " & sFlashAVersionCurrent & "> " & sInstallerPath & csFlashAInstallerVers)
 				Else
 					sFlashAUpdateStatus = "FAILED"
@@ -281,30 +281,30 @@ Sub Main
 	
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("FlashPlugin - START",2)
-	' FlashPlugin - сравним версии актуальную и установленную
-	' что принимать за актуальную версию ...	
+	' FlashPlugin - СЃСЂР°РІРЅРёРј РІРµСЂСЃРёРё Р°РєС‚СѓР°Р»СЊРЅСѓСЋ Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅСѓСЋ
+	' С‡С‚Рѕ РїСЂРёРЅРёРјР°С‚СЊ Р·Р° Р°РєС‚СѓР°Р»СЊРЅСѓСЋ РІРµСЂСЃРёСЋ ...	
 	If glbWEBMode Then
 		sFlashPVersionCurrent = sFlashVersionWEBGet("P")
 	Else
 		sFlashPVersionCurrent = sFlashVersionLocalGet("P")
 	End If
 	If sFlashPVersionCurrent <> "" Then 
-		If sFlashVersionInstalledGet(".", "P") <> "" then ' на компьютере присутствует какая-то версия
+		If sFlashVersionInstalledGet(".", "P") <> "" then ' РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ РїСЂРёСЃСѓС‚СЃС‚РІСѓРµС‚ РєР°РєР°СЏ-С‚Рѕ РІРµСЂСЃРёСЏ
 			If sFlashVersionInstalledGet(".", "P") <> sFlashPVersionCurrent then
-				' не совпадают, обновляем
+				' РЅРµ СЃРѕРІРїР°РґР°СЋС‚, РѕР±РЅРѕРІР»СЏРµРј
 				Call WriteLog("WARNING! Installed and current FlashPlugin version is NOT identical",1)
-				' надо будет отправить отчёт
+				' РЅР°РґРѕ Р±СѓРґРµС‚ РѕС‚РїСЂР°РІРёС‚СЊ РѕС‚С‡С‘С‚
 				bNeedToSendLog = True
 				If glbWEBMode Then
-					' получаем ссылку на скачку и скачиваем установщик
+					' РїРѕР»СѓС‡Р°РµРј СЃСЃС‹Р»РєСѓ РЅР° СЃРєР°С‡РєСѓ Рё СЃРєР°С‡РёРІР°РµРј СѓСЃС‚Р°РЅРѕРІС‰РёРє
 					Call HttpGetSave(csFlashPInstallerLink, sInstallerPath & csFlashPInstaller)
 				End If
-				' устанавливаем
+				' СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј
 				Call myRun(sInstallerPath & csFlashPInstaller & " " & csFlashInstallerParams)
-				' повторно проверяем результат
+				' РїРѕРІС‚РѕСЂРЅРѕ РїСЂРѕРІРµСЂСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚
 				If sFlashVersionInstalledGet(".", "P") = sFlashPVersionCurrent then
 					sFlashPUpdateStatus = "SUCCESS"
-					' записываем файл с номером актуальной версии установщика
+					' Р·Р°РїРёСЃС‹РІР°РµРј С„Р°Р№Р» СЃ РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё СѓСЃС‚Р°РЅРѕРІС‰РёРєР°
 					Call myRun("cmd /c echo " & sFlashPVersionCurrent & "> " & sInstallerPath & csFlashPInstallerVers)
 				Else
 					sFlashPUpdateStatus = "FAILED"
@@ -317,7 +317,7 @@ Sub Main
 	End If
 	Call WriteLog("FlashPlugin - FINISH",2)
 	
-	' при необходимости отправляем отчёт
+	' РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РѕС‚РїСЂР°РІР»СЏРµРј РѕС‚С‡С‘С‚
 	If bNeedToSendLog and glbMail then
 		Call WriteLog("Sending log to e-mail",2)
 		Call mySendMail("Updater Java=[" & sJavaNativeUpdateStatus &_
@@ -329,15 +329,15 @@ Sub Main
 End Sub ' Main
 
 Function sJavaGetLinkToDownload (sBits)
-	' парсит страничку csJavaInstallerLink
-	' и возвращает ссылку на скачку актуальной версии Java
-	' если sBits = 64, то возвращает ссылку на 64-битную версию, иначе = 32х
+	' РїР°СЂСЃРёС‚ СЃС‚СЂР°РЅРёС‡РєСѓ csJavaInstallerLink
+	' Рё РІРѕР·РІСЂР°С‰Р°РµС‚ СЃСЃС‹Р»РєСѓ РЅР° СЃРєР°С‡РєСѓ Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё Java
+	' РµСЃР»Рё sBits = 64, С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚ СЃСЃС‹Р»РєСѓ РЅР° 64-Р±РёС‚РЅСѓСЋ РІРµСЂСЃРёСЋ, РёРЅР°С‡Рµ = 32С…
 	If IsDebug <> 1 then On Error Resume Next
-	Dim sHttpText				' содержимое скаченной страницы
-	Dim objRegExp				' для получения ссылки на установщик
-	Dim objMatches, objMatch	' вспомогательные объекты при парсинге html
+	Dim sHttpText				' СЃРѕРґРµСЂР¶РёРјРѕРµ СЃРєР°С‡РµРЅРЅРѕР№ СЃС‚СЂР°РЅРёС†С‹
+	Dim objRegExp				' РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ СЃСЃС‹Р»РєРё РЅР° СѓСЃС‚Р°РЅРѕРІС‰РёРє
+	Dim objMatches, objMatch	' РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ РѕР±СЉРµРєС‚С‹ РїСЂРё РїР°СЂСЃРёРЅРіРµ html
 	
-	' скачиваем страницу выбора фалов для ручной загрузки Java в sHttpText
+	' СЃРєР°С‡РёРІР°РµРј СЃС‚СЂР°РЅРёС†Сѓ РІС‹Р±РѕСЂР° С„Р°Р»РѕРІ РґР»СЏ СЂСѓС‡РЅРѕР№ Р·Р°РіСЂСѓР·РєРё Java РІ sHttpText
 	Call WriteLog("sJavaGetLinkToDownload(" & sBits &"), Downloadning HTML",3)
 	sHttpText = sHttpGet(csJavaInstallerLink)
 	If sHttpText = "" then
@@ -346,7 +346,7 @@ Function sJavaGetLinkToDownload (sBits)
 		Exit Function
 	End If
 	
-	' начинаем разбирать HTML, ищем тег <a>
+	' РЅР°С‡РёРЅР°РµРј СЂР°Р·Р±РёСЂР°С‚СЊ HTML, РёС‰РµРј С‚РµРі <a>
 	Call WriteLog("sJavaGetLinkToDownload, Parsing HTML, try to find ""<a title=""Download Java... """,3)
 	Set objRegExp = CreateObject("VBScript.RegExp")
 	If sBits = "64" then 
@@ -364,7 +364,7 @@ Function sJavaGetLinkToDownload (sBits)
 	Else
 		Set objMatch = objMatches.Item(0)
 		sHttpText = objMatch.Value
-		'ищем href
+		'РёС‰РµРј href
 		Call WriteLog("sJavaGetLinkToDownload, Parsing HTML, try to find ""href""",3)
 		objRegExp.Pattern= "href=""http://(.*?)"""
 		Set objMatches = objRegExp.Execute(sHttpText)
@@ -375,7 +375,7 @@ Function sJavaGetLinkToDownload (sBits)
 			Exit Function
 		Else
 			Set objMatch = objMatches.Item(0)
-			' обрезаем лишние символы
+			' РѕР±СЂРµР·Р°РµРј Р»РёС€РЅРёРµ СЃРёРјРІРѕР»С‹
 			sHttpText=Mid(objMatch.Value,7,len(objMatch.Value)-7)
 			Call WriteLog("sJavaGetLinkToDownload, OK! Download link = " & sHttpText,3)
 			sJavaGetLinkToDownload = sHttpText
@@ -384,14 +384,14 @@ Function sJavaGetLinkToDownload (sBits)
 End Function ' sJavaGetLinkToDownload
 
 Function sJavaVersionInstalledGet (strComputer)
-	' возвращает строку с номером версии Java, установленной на компьютере strComputer, или локальном компьютере (если пусто)
-	' возвращает версию совпадающую с разрядностью системы (32 для 32, 64 для 64)
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ СЃ РЅРѕРјРµСЂРѕРј РІРµСЂСЃРёРё Java, СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕР№ РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ strComputer, РёР»Рё Р»РѕРєР°Р»СЊРЅРѕРј РєРѕРјРїСЊСЋС‚РµСЂРµ (РµСЃР»Рё РїСѓСЃС‚Рѕ)
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ РІРµСЂСЃРёСЋ СЃРѕРІРїР°РґР°СЋС‰СѓСЋ СЃ СЂР°Р·СЂСЏРґРЅРѕСЃС‚СЊСЋ СЃРёСЃС‚РµРјС‹ (32 РґР»СЏ 32, 64 РґР»СЏ 64)
 	sJavaVersionInstalledGet = sJavaVersionInstalledGetA (strComputer, "")
 End Function ' sJavaVersionInstalledGet
 Function sJavaWoW6432VersionInstalledGet (strComputer)
-	' возвращает строку с номером версии Java, установленной на компьютере strComputer, или локальном компьютере (если пусто)
-	' в sWoW6432 = возвращает версию 32-битной Javа на 64-битной системе
-	' только на 64битных системых
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ СЃ РЅРѕРјРµСЂРѕРј РІРµСЂСЃРёРё Java, СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕР№ РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ strComputer, РёР»Рё Р»РѕРєР°Р»СЊРЅРѕРј РєРѕРјРїСЊСЋС‚РµСЂРµ (РµСЃР»Рё РїСѓСЃС‚Рѕ)
+	' РІ sWoW6432 = РІРѕР·РІСЂР°С‰Р°РµС‚ РІРµСЂСЃРёСЋ 32-Р±РёС‚РЅРѕР№ JavР° РЅР° 64-Р±РёС‚РЅРѕР№ СЃРёСЃС‚РµРјРµ
+	' С‚РѕР»СЊРєРѕ РЅР° 64Р±РёС‚РЅС‹С… СЃРёСЃС‚РµРјС‹С…
 	
 	If Is64BitSystem(strComputer) then
 		sJavaWoW6432VersionInstalledGet = sJavaVersionInstalledGetA (strComputer, "\Wow6432Node")
@@ -402,17 +402,17 @@ End Function ' sJavaWoW6432VersionInstalledGet
 
 	
 Function sJavaVersionInstalledGetA (strComputer, sRegPathModifier)
-	'sRegPathModifier -  добавляется в путь, если проверяется 32битная версия на 64битной системе. 
-	' должен быть = "\Wow6432Node"
+	'sRegPathModifier -  РґРѕР±Р°РІР»СЏРµС‚СЃСЏ РІ РїСѓС‚СЊ, РµСЃР»Рё РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ 32Р±РёС‚РЅР°СЏ РІРµСЂСЃРёСЏ РЅР° 64Р±РёС‚РЅРѕР№ СЃРёСЃС‚РµРјРµ. 
+	' РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ = "\Wow6432Node"
 
 	If IsDebug <> 1 then On Error Resume Next
 	
 	Dim sJavaMajorVersionInstalled, sJavaVersionInstalled
 	If strComputer = "" Then strComputer = "."
-	' узнаем поколение установленной Java
+	' СѓР·РЅР°РµРј РїРѕРєРѕР»РµРЅРёРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕР№ Java
 	sJavaMajorVersionInstalled = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "CurrentVersion")
 	sJavaMajorVersionInstalled = Right(sJavaMajorVersionInstalled,1)
-	' узнаем полный номер версии установленной Java
+	' СѓР·РЅР°РµРј РїРѕР»РЅС‹Р№ РЅРѕРјРµСЂ РІРµСЂСЃРёРё СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕР№ Java
 	sJavaVersionInstalled  = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "Java" & sJavaMajorVersionInstalled & "FamilyVersion")
 	If sJavaVersionInstalled = "" then
 		Call WriteLog("sJavaVersionInstalledGetA, INFO: Can't get the installed version of Java from the registry. Probably Java on this computer is not installed",3)
@@ -424,13 +424,13 @@ Function sJavaVersionInstalledGetA (strComputer, sRegPathModifier)
 End Function ' sJavaVersionInstalledGetA
 
 Function sJavaVersionWEBGet
-	' возвращает строку с номером актуальной версии JAVA, берёт с сайта
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ СЃ РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё JAVA, Р±РµСЂС‘С‚ СЃ СЃР°Р№С‚Р°
 	If IsDebug <> 1 then On Error Resume Next
 	Dim  sJavaVersionWEB
 	
 	sJavaVersionWEB = sHttpGet (csJavaVersionCurrentLnk)
-	sJavaVersionWEB = Replace(sJavaVersionWEB, vbCrLf, "") ' убираем лишний перевод строки
-	If sJavaVersionWEB = "" then ' не смогли получить актуальную версию Java по ссылке
+	sJavaVersionWEB = Replace(sJavaVersionWEB, vbCrLf, "") ' СѓР±РёСЂР°РµРј Р»РёС€РЅРёР№ РїРµСЂРµРІРѕРґ СЃС‚СЂРѕРєРё
+	If sJavaVersionWEB = "" then ' РЅРµ СЃРјРѕРіР»Рё РїРѕР»СѓС‡РёС‚СЊ Р°РєС‚СѓР°Р»СЊРЅСѓСЋ РІРµСЂСЃРёСЋ Java РїРѕ СЃСЃС‹Р»РєРµ
 		Call WriteLog("sJavaVersionWEBGet, ERROR! Can't get current version of Java by the link " & csJavaVersionCurrentLnk,1)
 		bNeedToSendLog = True
 		Exit Function
@@ -440,7 +440,7 @@ Function sJavaVersionWEBGet
 End Function ' sJavaVersionWEBGet
 
 Function sJavaVersionLocalGet
-	' возвращает строку с номером актуальной версии JAVA, берёт с локального репозитория
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ СЃ РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё JAVA, Р±РµСЂС‘С‚ СЃ Р»РѕРєР°Р»СЊРЅРѕРіРѕ СЂРµРїРѕР·РёС‚РѕСЂРёСЏ
 	If IsDebug <> 1 then On Error Resume Next
 	Dim  sJavaVersionLocal
 	
@@ -455,8 +455,8 @@ Function sJavaVersionLocalGet
 End Function ' sJavaVersionLocalGet
 
 Function sFlashVersionInstalledGet (strComputer, sFlashType)
-	' возвращает строку с номером версии Flash, установленной на компьютере strComputer, или локальном компьютере (если пусто)
-	' sFlashType - тип флэш-проигрывателя, A=ActiveX, P=Plugin
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ СЃ РЅРѕРјРµСЂРѕРј РІРµСЂСЃРёРё Flash, СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕР№ РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ strComputer, РёР»Рё Р»РѕРєР°Р»СЊРЅРѕРј РєРѕРјРїСЊСЋС‚РµСЂРµ (РµСЃР»Рё РїСѓСЃС‚Рѕ)
+	' sFlashType - С‚РёРї С„Р»СЌС€-РїСЂРѕРёРіСЂС‹РІР°С‚РµР»СЏ, A=ActiveX, P=Plugin
 	If IsDebug <> 1 then On Error Resume Next
 	
 	Dim sTemp
@@ -479,13 +479,13 @@ Function sFlashVersionInstalledGet (strComputer, sFlashType)
 End Function ' sFlashVersionInstalledGet
 
 Function sFlashVersionWEBGet (sFlashType)
-	' возвращает строку с номером актуальной версии Flash, берёт с сайта
-	' sFlashType - тип флэш-проигрывателя, A=ActiveX, P=Plugin	
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ СЃ РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё Flash, Р±РµСЂС‘С‚ СЃ СЃР°Р№С‚Р°
+	' sFlashType - С‚РёРї С„Р»СЌС€-РїСЂРѕРёРіСЂС‹РІР°С‚РµР»СЏ, A=ActiveX, P=Plugin	
 	If IsDebug <> 1 then On Error Resume Next
 	Dim sTemp
-	Dim sHttpText				' содержимое загруженной страницы
-	Dim objRegExp				' для получения номера актуальной версии
-	Dim objMatches			 	' вспомогательный объект при парсинге html
+	Dim sHttpText				' СЃРѕРґРµСЂР¶РёРјРѕРµ Р·Р°РіСЂСѓР¶РµРЅРЅРѕР№ СЃС‚СЂР°РЅРёС†С‹
+	Dim objRegExp				' РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ РЅРѕРјРµСЂР° Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё
+	Dim objMatches			 	' РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РѕР±СЉРµРєС‚ РїСЂРё РїР°СЂСЃРёРЅРіРµ html
 	
 	sHttpText = sHttpGet (csFlashVersionCurrentLnk)
 	If sHttpText = "" then
@@ -493,7 +493,7 @@ Function sFlashVersionWEBGet (sFlashType)
 		bNeedToSendLog = True
 		Exit Function
 	End If
-	' начинаем разбирать HTML,ищем ячейки таблицы с последовательностью цифр, разделенных точками.
+	' РЅР°С‡РёРЅР°РµРј СЂР°Р·Р±РёСЂР°С‚СЊ HTML,РёС‰РµРј СЏС‡РµР№РєРё С‚Р°Р±Р»РёС†С‹ СЃ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊСЋ С†РёС„СЂ, СЂР°Р·РґРµР»РµРЅРЅС‹С… С‚РѕС‡РєР°РјРё.
 	Set objRegExp = CreateObject("VBScript.RegExp")
 	objRegExp.Pattern= "<td>([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)</td>"
 	objRegExp.Global = True
@@ -513,7 +513,7 @@ Function sFlashVersionWEBGet (sFlashType)
 				sTemp = Mid(objMatches.Item(2).Value ,5,len(objMatches.Item(2).Value )-9) 	
 			End Select
 			' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			' !!! изменить номер Item(x) при изменении на сайте Adobe по ссылке csFlashVersionCurrentLnk !!!
+			' !!! РёР·РјРµРЅРёС‚СЊ РЅРѕРјРµСЂ Item(x) РїСЂРё РёР·РјРµРЅРµРЅРёРё РЅР° СЃР°Р№С‚Рµ Adobe РїРѕ СЃСЃС‹Р»РєРµ csFlashVersionCurrentLnk !!!
 			' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	End If
 	
@@ -527,7 +527,7 @@ Function sFlashVersionWEBGet (sFlashType)
 End Function ' sFlashVersionWEBGet
 
 Function sFlashVersionLocalGet (sFlashType)
-	' возвращает строку с номером актуальной версии Flash, берёт с локального репозитория
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ СЃ РЅРѕРјРµСЂРѕРј Р°РєС‚СѓР°Р»СЊРЅРѕР№ РІРµСЂСЃРёРё Flash, Р±РµСЂС‘С‚ СЃ Р»РѕРєР°Р»СЊРЅРѕРіРѕ СЂРµРїРѕР·РёС‚РѕСЂРёСЏ
 	If IsDebug <> 1 then On Error Resume Next
 	Dim  sTemp, sInstallerVersPath
 
@@ -550,11 +550,11 @@ End Function ' sFlashVersionLocalGet
 
 
 ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-' служебные процедуры и функции - доступ к файлам, реестру, http, отправка почты и т.п.
+' СЃР»СѓР¶РµР±РЅС‹Рµ РїСЂРѕС†РµРґСѓСЂС‹ Рё С„СѓРЅРєС†РёРё - РґРѕСЃС‚СѓРї Рє С„Р°Р№Р»Р°Рј, СЂРµРµСЃС‚СЂСѓ, http, РѕС‚РїСЂР°РІРєР° РїРѕС‡С‚С‹ Рё С‚.Рї.
 
 Function bParseCommandLine
-	' разбирает параметры командной строки, устанавливает значения по умолчанию для глобальных параметров								
-	' возвращает false при появлении ошибок
+	' СЂР°Р·Р±РёСЂР°РµС‚ РїР°СЂР°РјРµС‚СЂС‹ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРё, СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ Р·РЅР°С‡РµРЅРёСЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РґР»СЏ РіР»РѕР±Р°Р»СЊРЅС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ								
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ false РїСЂРё РїРѕСЏРІР»РµРЅРёРё РѕС€РёР±РѕРє
 	If IsDebug <> 1 then On Error Resume Next
 
 	glbMail = False
@@ -617,9 +617,9 @@ Function bParseCommandLine
 	
 	If objNamed.Exists("webmodesaveinstallforce") Then 
 		Call WriteLog ("bParseCommandLine, WEBModeSaveInstallForce = true",3)
-		' просто выкачиваем все обновления
-		sInstallerPath = csInstallerPath		' путь сохранения инсталляшек при /WEBModeSaveInstall+
-		' при необходимости добавляем слэш в конце рабочего каталога
+		' РїСЂРѕСЃС‚Рѕ РІС‹РєР°С‡РёРІР°РµРј РІСЃРµ РѕР±РЅРѕРІР»РµРЅРёСЏ
+		sInstallerPath = csInstallerPath		' РїСѓС‚СЊ СЃРѕС…СЂР°РЅРµРЅРёСЏ РёРЅСЃС‚Р°Р»Р»СЏС€РµРє РїСЂРё /WEBModeSaveInstall+
+		' РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё РґРѕР±Р°РІР»СЏРµРј СЃР»СЌС€ РІ РєРѕРЅС†Рµ СЂР°Р±РѕС‡РµРіРѕ РєР°С‚Р°Р»РѕРіР°
 		If Right(sInstallerPath,1) <> "\" Then 
 			sInstallerPath = sInstallerPath + "\"
 		End If
@@ -659,19 +659,19 @@ Function bParseCommandLine
 		Call WriteLog ("bParseCommandLine, ShowVersion for comp " & strComputer,3)
 		
 		If strComputer <> "." Then
-			' Пингом проверим что комп включен
+			' РџРёРЅРіРѕРј РїСЂРѕРІРµСЂРёРј С‡С‚Рѕ РєРѕРјРї РІРєР»СЋС‡РµРЅ
 			If IsPingSucsess (strComputer) Then
-				WScript.Echo ("компьютер " & strComputer & " доступен!")
+				WScript.Echo ("РєРѕРјРїСЊСЋС‚РµСЂ " & strComputer & " РґРѕСЃС‚СѓРїРµРЅ!")
 			Else
-				WScript.Echo ("компьютер " & strComputer & " НЕ доступен!")
+				WScript.Echo ("РєРѕРјРїСЊСЋС‚РµСЂ " & strComputer & " РќР• РґРѕСЃС‚СѓРїРµРЅ!")
 				WScript.Quit
 			End If
 		End If
-		' TODO - переделать вывод отчёта
+		' TODO - РїРµСЂРµРґРµР»Р°С‚СЊ РІС‹РІРѕРґ РѕС‚С‡С‘С‚Р°
 		If Is64BitSystem (".") = true then 
-		   ' родная битность
+		   ' СЂРѕРґРЅР°СЏ Р±РёС‚РЅРѕСЃС‚СЊ
 			call WriteLog("JAVA64 = " & sJavaVersionInstalledGet(strComputer) ,1)
-			' для 64 битных систем дополнительно показываем версию 32й явы
+			' РґР»СЏ 64 Р±РёС‚РЅС‹С… СЃРёСЃС‚РµРј РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅРѕ РїРѕРєР°Р·С‹РІР°РµРј РІРµСЂСЃРёСЋ 32Р№ СЏРІС‹
 			call WriteLog("JAVA32 = " & sJavaWoW6432VersionInstalledGet(strComputer) ,1)
 		else
 			call WriteLog("JAVA   = " & sJavaVersionInstalledGet(strComputer) ,1)
@@ -699,19 +699,19 @@ Function bParseCommandLine
 	If Err.Number <> 0 then 
 		Call WriteLogError("bParseCommandLine", Err.Number, Err.Description, Err.Source)
 		bParseCommandLine = false
-		'todo : вывод Help'а
+		'todo : РІС‹РІРѕРґ Help'Р°
 	End If
 End Function
 
 sub PrintHelp
-	' выводит справку
+	' РІС‹РІРѕРґРёС‚ СЃРїСЂР°РІРєСѓ
 	If IsDebug <> 1 then On Error Resume Next
 	Call WriteLog("PrintHelp", 0)	
 	Dim objFSO, fIn, sTemp, sTemp2
 
 	Set objFSO = CreateObject("Scripting.FileSystemObject")
-	' TODO = сделать парсинг WScript.ScriptName и замену wsf на vbs (или txt)
-	' из полного имени скрипта вырезаем имя скрипта, получаем путь запуска скрипта
+	' TODO = СЃРґРµР»Р°С‚СЊ РїР°СЂСЃРёРЅРі WScript.ScriptName Рё Р·Р°РјРµРЅСѓ wsf РЅР° vbs (РёР»Рё txt)
+	' РёР· РїРѕР»РЅРѕРіРѕ РёРјРµРЅРё СЃРєСЂРёРїС‚Р° РІС‹СЂРµР·Р°РµРј РёРјСЏ СЃРєСЂРёРїС‚Р°, РїРѕР»СѓС‡Р°РµРј РїСѓС‚СЊ Р·Р°РїСѓСЃРєР° СЃРєСЂРёРїС‚Р°
 	Set fIn = objFSO.OpenTextFile(left (WScript.ScriptFullName, Len(WScript.ScriptFullName)-Len(WScript.ScriptName)) & "FJUpdater.vbs", 1)
 	
 	Do While (Not fIn.AtEndOfStream) 
@@ -723,7 +723,7 @@ sub PrintHelp
 end Sub
 
 Sub mySendMail (sSubject, sTextBody)
-	' отправляем почту через CDO
+	' РѕС‚РїСЂР°РІР»СЏРµРј РїРѕС‡С‚Сѓ С‡РµСЂРµР· CDO
 	If IsDebug <> 1 then On Error Resume Next
 	
 	If not IsPingSucsess (csSMTPServer) Then
@@ -742,9 +742,9 @@ Sub mySendMail (sSubject, sTextBody)
 		.From = csFrom
 		.To = csTo
 		.TextBody = sTextBody
-		'важность
+		'РІР°Р¶РЅРѕСЃС‚СЊ
 		.fields.Item("urn:schemas:mailheader:importance").Value = "high"	
-		'срочность 
+		'СЃСЂРѕС‡РЅРѕСЃС‚СЊ 
 		.fields.Item("urn:schemas:mailheader:priority").Value = 1
 		.fields.Update()
 	End with
@@ -803,7 +803,7 @@ function IsHostCscript()
 end function
 
 Sub WriteLog(sText, iDebug) 
-	' добавляет строку в лог для отправки и вывод в консоль, если iDebug <= gliDebug 
+	' РґРѕР±Р°РІР»СЏРµС‚ СЃС‚СЂРѕРєСѓ РІ Р»РѕРі РґР»СЏ РѕС‚РїСЂР°РІРєРё Рё РІС‹РІРѕРґ РІ РєРѕРЅСЃРѕР»СЊ, РµСЃР»Рё iDebug <= gliDebug 
 	If IsDebug <> 1 then On Error Resume Next
 	If iDebug <= gliDebug then
 		Dim sTemp
@@ -814,16 +814,16 @@ Sub WriteLog(sText, iDebug)
 End Sub
 
 Sub WriteLogError(sText, iNumber, sDescription, sSource)
-	' добавляет строку с ошибкой в лог
+	' РґРѕР±Р°РІР»СЏРµС‚ СЃС‚СЂРѕРєСѓ СЃ РѕС€РёР±РєРѕР№ РІ Р»РѕРі
 	If IsDebug <> 1 then On Error Resume Next
 	Call WriteLog(sText & ", ERROR! : " & iNumber & ": " & sDescription & " generated by " & sSource, 2)
-	If gliDebug >= 2 Then ' если высокая детализация отладки
-		bNeedToSendLog = True ' сообщить об ошибке почтой
+	If gliDebug >= 2 Then ' РµСЃР»Рё РІС‹СЃРѕРєР°СЏ РґРµС‚Р°Р»РёР·Р°С†РёСЏ РѕС‚Р»Р°РґРєРё
+		bNeedToSendLog = True ' СЃРѕРѕР±С‰РёС‚СЊ РѕР± РѕС€РёР±РєРµ РїРѕС‡С‚РѕР№
 	End If
 End Sub
 
 function sRegRead (strComputer, regHive, sKeyPath, sKeyName)
-	' возвращает значение ключа реестра sKeyPath + sKeyName компьютера strComputer
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ Р·РЅР°С‡РµРЅРёРµ РєР»СЋС‡Р° СЂРµРµСЃС‚СЂР° sKeyPath + sKeyName РєРѕРјРїСЊСЋС‚РµСЂР° strComputer
 	If IsDebug <> 1 then On Error Resume Next
 	Call WriteLog("sRegRead, sComputer=" & strComputer & ", regHive=" & regHive & ", sKeyPath=" & sKeyPath & ", sKeyName=" & sKeyName, 3)	
 	
@@ -838,7 +838,7 @@ End function
 
 
 Function sFileRead (sFile)
-	' возвращает содержимое файла
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃРѕРґРµСЂР¶РёРјРѕРµ С„Р°Р№Р»Р°
 	If IsDebug <> 1 then On Error Resume Next
 	Call WriteLog("sFileRead, sFile=" & sFile, 3)	
 	
@@ -847,7 +847,7 @@ Function sFileRead (sFile)
 	Set objFSO = CreateObject("Scripting.FileSystemObject")
 	If objFSO.FileExists(sFile) then
 		Set fIn = objFSO.OpenTextFile(sFile, 1)
-		sFileRead = Replace(fIn.ReadAll, vbCrLf, "") ' читаем весь файл и убираем переводы строки
+		sFileRead = Replace(fIn.ReadAll, vbCrLf, "") ' С‡РёС‚Р°РµРј РІРµСЃСЊ С„Р°Р№Р» Рё СѓР±РёСЂР°РµРј РїРµСЂРµРІРѕРґС‹ СЃС‚СЂРѕРєРё
 		fIn.Close
 		Set fIn = nothing
 	Else
@@ -858,7 +858,7 @@ Function sFileRead (sFile)
 End Function
 
 Function sEnvGet (sEnv)
-	' возвращает значение переменной окружения
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ Р·РЅР°С‡РµРЅРёРµ РїРµСЂРµРјРµРЅРЅРѕР№ РѕРєСЂСѓР¶РµРЅРёСЏ
 	On Error Resume Next	
 	
 	Dim objShell
@@ -868,16 +868,16 @@ Function sEnvGet (sEnv)
 End Function
 
 Function myRun(sCommand)
-	' запускает sCommand и ждёт выполнения, возвращает вывод комманды
+	' Р·Р°РїСѓСЃРєР°РµС‚ sCommand Рё Р¶РґС‘С‚ РІС‹РїРѕР»РЅРµРЅРёСЏ, РІРѕР·РІСЂР°С‰Р°РµС‚ РІС‹РІРѕРґ РєРѕРјРјР°РЅРґС‹
 	If IsDebug <> 1 then On Error Resume Next
 	Dim objShell, objShellExec
 	
-	Const ciShellExecStatusRun  = 0 'приложение запущено.
-	Const ciShellExecStatusStop = 1 '1 - приложение завершено.
+	Const ciShellExecStatusRun  = 0 'РїСЂРёР»РѕР¶РµРЅРёРµ Р·Р°РїСѓС‰РµРЅРѕ.
+	Const ciShellExecStatusStop = 1 '1 - РїСЂРёР»РѕР¶РµРЅРёРµ Р·Р°РІРµСЂС€РµРЅРѕ.
 	
 	Set objShell = CreateObject("WScript.Shell")	
 	Set objShellExec = objShell.Exec(sCommand)
-	' ждём, пока отработает скрипт
+	' Р¶РґС‘Рј, РїРѕРєР° РѕС‚СЂР°Р±РѕС‚Р°РµС‚ СЃРєСЂРёРїС‚
 	While objShellExec.Status = ciShellExecStatusRun
 		WScript.Sleep 100
 	Wend
@@ -885,14 +885,14 @@ Function myRun(sCommand)
 End Function
 
 Function sHttpGet (sURL) 
-	' возвращает содержимое загруженное по ссылке sURL
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ СЃРѕРґРµСЂР¶РёРјРѕРµ Р·Р°РіСЂСѓР¶РµРЅРЅРѕРµ РїРѕ СЃСЃС‹Р»РєРµ sURL
 	If IsDebug <> 1 then On Error Resume Next
 	Dim objHttp
 	
 	Call WriteLog("sHttpGet, sURL=" & sURL,3)
 	Set objHttp = CreateObject("Msxml2.ServerXMLHTTP.6.0")
 	objHttp.Open "GET", sURL, False
-	' эмулируем IE10 64bit
+	' СЌРјСѓР»РёСЂСѓРµРј IE10 64bit
 	objHttp.setRequestHeader "User-Agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)"
 	objHttp.Send
 	If Err.Number <> 0 then Call WriteLogError("sHttpGet", Err.Number, Err.Description, Err.Source)
@@ -901,14 +901,14 @@ Function sHttpGet (sURL)
 End Function
 
 Sub HttpGetSave(sURL, sFile) 
-	' сохраняет содержимое загруженное по ссылке sURL в файл sFile
+	' СЃРѕС…СЂР°РЅСЏРµС‚ СЃРѕРґРµСЂР¶РёРјРѕРµ Р·Р°РіСЂСѓР¶РµРЅРЅРѕРµ РїРѕ СЃСЃС‹Р»РєРµ sURL РІ С„Р°Р№Р» sFile
 	If IsDebug <> 1 then On Error Resume Next
 	Dim objHttp, objADOStream, objFSO
 	
 	Call WriteLog("HttpGetSave, sURL=" & sURL & ", sFile=" & sFile,3)
 	Set objHttp = CreateObject("Msxml2.ServerXMLHTTP")
 	objHttp.Open "GET", sURL, False	
-	' эмулируем IE10 64bit
+	' СЌРјСѓР»РёСЂСѓРµРј IE10 64bit
 	objHttp.setRequestHeader "User-Agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)"
 	objHttp.Send
 	If objHttp.Status = 200 Then
@@ -929,7 +929,7 @@ Sub HttpGetSave(sURL, sFile)
 End sub
 
 Function Is64BitSystem (strComputer)
-	' возвращает True, если компьютере strComputer 64битный,  если strComputer = пусто то на локальном компьютере
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ True, РµСЃР»Рё РєРѕРјРїСЊСЋС‚РµСЂРµ strComputer 64Р±РёС‚РЅС‹Р№,  РµСЃР»Рё strComputer = РїСѓСЃС‚Рѕ С‚Рѕ РЅР° Р»РѕРєР°Р»СЊРЅРѕРј РєРѕРјРїСЊСЋС‚РµСЂРµ
 	' http://stackoverflow.com/questions/3583604/how-can-i-use-vbscript-to-determine-whether-i-am-running-a-32-bit-or-64-bit-wind
 	If IsDebug <> 1 then On Error Resume Next
 	
@@ -942,7 +942,7 @@ Function Is64BitSystem (strComputer)
 End Function
 
 Function IsPingSucsess (strComputer)
-	' возвращает True, если компьютере strComputer отвечает на пинг
+	' РІРѕР·РІСЂР°С‰Р°РµС‚ True, РµСЃР»Рё РєРѕРјРїСЊСЋС‚РµСЂРµ strComputer РѕС‚РІРµС‡Р°РµС‚ РЅР° РїРёРЅРі
 	If IsDebug <> 1 then On Error Resume Next
 
 	dim sTemp 
