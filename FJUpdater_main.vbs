@@ -68,8 +68,8 @@ Const csJavaVersionCurrentLnk = "http://www.java.com/applet/JreCurrentVersion2.t
 Const csFlashVersionCurrentLnk = "http://www.adobe.com/software/flash/about/"
 ' и где искать\качать инсталл€шки
 Const csJavaInstallerLink   = "http://java.com/en/download/windows_manual.jsp"
-Const csFlashPInstallerLink = "http://download.macromedia.com/pub/flashplayer/current/support/install_flash_player.exe"
-Const csFlashAInstallerLink = "http://download.macromedia.com/pub/flashplayer/current/support/install_flash_player_ax.exe"
+Const csFlashPInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player.exe"
+Const csFlashAInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player_ax.exe"
 ' ключи запуска установщиков
 Const csJavaInstallerParams = "/s /v /qn IEXPLORER=1 MOZILLA=1 REBOOT=ReallySuppress JAVAUPDATE=0 WEBSTARTICON=0"
 Const csFlashInstallerParams = "/install"
