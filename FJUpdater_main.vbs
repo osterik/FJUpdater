@@ -58,6 +58,7 @@ If IsDebug <> 1 then On Error Resume Next
 
 ' имена файлов с установщиками\номером актуальной версии, которые лежат в локальном репозитории
 Const csJavaInstaller		= "java_installer.exe"
+Const csJavaInstallerMSI	= "java_installer.msi"
 Const csJavaInstaller64		= "java_installer64.exe"
 Const csJavaInstallerVers	= "java_current.txt"
 Const csFlashPInstaller		= "flashP_installer.exe"	' Flash Plugin (Firefox, Mozilla, Netscape, Opera)
@@ -75,6 +76,7 @@ Const csFlashPInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/
 Const csFlashAInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player_ax.exe"
 ' ключи запуска установщиков
 Const csJavaInstallerParams = "/s"
+Const csJavaInstallerParamsMSI = "/quiet"
 Const csFlashInstallerParams = "/install"
 
 '===================================================================================================
@@ -106,6 +108,9 @@ Dim sLog 									' общий лог, отсылается на почту при ошибках или появлении обн
 Dim bNeedToSendLog							' флаг необходимости отправки лога на почту
 Dim sJavaNativeUpdateStatus, sJavaWoW6432UpdateStatus, sFlashAUpdateStatus, sFlashPUpdateStatus		' итоговый статус операций обновления
 Dim sJavaVersionCurrent, sFlashPVersionCurrent, sFlashAVersionCurrent ' номер версии при получении обновлений, используется для записи файла с номером версии
+
+Dim objFSO
+Dim objShell	
 
 Sub Main
 	If IsDebug <> 1 then On Error Resume Next
@@ -224,8 +229,23 @@ Sub Main
 					' получаем ссылку на скачку и скачиваем установщик
 					Call HttpGetSave(sJavaGetLinkToDownload("32"), sInstallerPath & csJavaInstaller) 
 				End If
-				' устанавливаем
-				Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
+				' устанавливаем, если установка идет с параметром glbWEBModeSaveInstall то выполняется обычный инсталл, так как она выполняется обычно из-под учетной записи
+				' привилегированного пользователя, а если клиентское обновление, то запускается msi пакет. Это связанно с тем, что при ненативной установке java от имени системы,
+				' а так обычно и происходит при запуске из стартап скрипта, установщик жавы распаковывает msi файл в путь C:\Windows\SysWOW64\config\systemprofile\AppData\LocalLow\,
+				' а ищет его в каталоге C:\Windows\system32\config\systemprofile\AppData\LocalLow\
+				If glbWEBModeSaveInstall then
+					Call WriteLog("Installing EXE package",2)
+					Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
+				else
+					Set objFSO = CreateObject("Scripting.FileSystemObject")
+					If objFSO.FileExists(sInstallerPath & csJavaInstallerMSI) then
+						Call WriteLog("Installing MSI package",2)
+						Call myRun("msiexec /i " & sInstallerPath & csJavaInstallerMSI & " " & csJavaInstallerParamsMSI)
+					else
+						Call WriteLog("The MSI package is missing",2)
+					End If
+					Set objFSO = Nothing
+				End If
 				
 				' повторно проверяем результат
 				If sJavaWoW6432VersionInstalledGet(".") = sJavaVersionCurrent then
@@ -233,6 +253,16 @@ Sub Main
 					If glbWEBModeSaveInstall then
 						' записываем файл с номером актуальной версии установщика
 						Call myRun("cmd /c echo " & sJavaVersionCurrent & "> " & sInstallerPath & csJavaInstallerVers)
+						' копируем распакованую версию java в каталог инсталляции
+						Call WriteLog("Copying MSI package to share directory",2)
+						Set objShell = CreateObject("WScript.Shell")
+						Dim AppData
+						AppData = objShell.expandEnvironmentStrings("%APPDATA%")
+						Set objFSO = CreateObject("Scripting.FileSystemObject")
+						Call WriteLog (AppData & "\..\LocalLow\Sun\Java\jre" & sJavaVersionCurrent & "\jre" & sJavaVersionCurrent & ".msi to " & sInstallerPath & csJavaInstallerMSI,3)
+						objFSO.CopyFile AppData & "\..\LocalLow\Sun\Java\jre" & sJavaVersionCurrent & "\jre" & sJavaVersionCurrent & ".msi", sInstallerPath & csJavaInstallerMSI, True
+						Set objFSO = Nothing
+						Set objShell = Nothing
 					End If
 				Else
 					sJavaWoW6432UpdateStatus = "FAILED"
@@ -332,7 +362,6 @@ Sub Main
 
 	' Записывать отчет в лог файл
 	If glbLogFile then 
-		Dim objFSO
 		Set objFSO = CreateObject("Scripting.FileSystemObject").OpenTextFile(ReportFilePath & "Update_flash_java.log",2,true)
 		objFSO.WriteLine(sLog)
 		objFSO.Close
@@ -624,8 +653,14 @@ Function bParseCommandLine
 	If objNamed.Exists("webmodesaveinstall") Then 
 		select case lcase(objNamed.Item("webmodesaveinstall"))
 			case "+", "1", "true"
-				glbWEBModeSaveInstall = true
-				Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall = true",3)
+			' На всякий случай Переключаем glbWEBModeSaveInstall в false при glbWEBMode=false, так как теперь от этого ключа зависит установка и сохранение MSI пакета для JAVA 1.8
+				If glbWEBMode then 
+					glbWEBModeSaveInstall = true
+					Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall = true",3)
+				else
+					glbWEBModeSaveInstall = false
+					Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall = false",3)
+				End If
 			case "-", "0", "false"
 				glbWEBModeSaveInstall = false
 				Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall = false",3)
