@@ -7,7 +7,7 @@ Const csSendUserName    = ""
 Const csSendPassword    = ""
 Const ciSMTPServerPort  = 25
 Const cbSMTPUseSSL      = false
-Const ciSMTPAuthenticate= 0 ' 0 =anonymous, Do not authenticate
+Const ciSMTPAuthenticate= 1 ' 0 =anonymous, Do not authenticate
                             ' 1 = basic (clear-text) authentication
                             ' 2 = NTLM
 Const ciSendUsing       = 2 ' 1 = cdoSendUsingPickup, send message using the local SMTP service pickup directory.
@@ -16,4 +16,6 @@ Const ciSendUsing       = 2 ' 1 = cdoSendUsingPickup, send message using the loc
 '===================================================================================================
 ' пути, куда сохранять установщик (при /WEBMode+ и WEBModeSaveInstall+),
 ' или откуда устанавливать уже загруженные программы (/WEBMode-)
-Const csInstallerPath 		= "\\SERVER\INSTALL_CLIENT$\FJUpdater\"
+Const csInstallerPath 	= "\\SERVER\INSTALL_CLIENT$\FJUpdater\"
+' Путь куда схраняется файловая версия лога
+Const ReportFilePath    = "\\SERVER\INSTALL_CLIENT$\FJUpdater\"

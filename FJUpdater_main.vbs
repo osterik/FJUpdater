@@ -16,13 +16,13 @@
 'При запуске без параметров просто выполняет обновление установленных плагинов через интернет
 '
 'Параметры командной строки:
-'/mail:1 = отправлять почту при ошибках работы или при наличии обновлений 
-'/mail:0 = тихий режим (default)
-'
 '/debug:0 = не выводить ничего
 '/debug:1 = записывать только сообщения о выполняемых действиях (default) и ошибки
 '/debug:2 = записывать подробные сообщения 
 '/debug:3 = записывать детальные сообщения о вызываемых функцияих и их парметрах
+'
+'/mail:1 = отправлять почту при ошибках работы или при наличии обновлений 
+'/mail:0 = тихий режим (default)
 '
 '/WebMode:1 = проверять обновления напрямую из интернета (default)
 '/WebMode:0 = из локальной папки (csInstallerPath)
@@ -30,6 +30,9 @@
 '/WEBModeSaveInstall:1 = сохранять обновления в локальную папку (csInstallerPath)
 '/WEBModeSaveInstall:0 = сохранять обновления в %TEMP% (default)
 'ключ /WEBModeSaveInstall имеет смысл только при /WEBMode:1
+'
+'/LogFile:0 = Не создавать логфайл и не записывать в него ничего
+'/LogFile:1 = Создать логфайл (либо презаписать его содержимое)
 '
 '/WEBModeSaveInstallForce = особый режим, принудительно скачать последение версии установщиков
 'и сохранить в локальную папку (csInstallerPath). не проверяет установленные версии плагинов.
@@ -55,6 +58,7 @@ If IsDebug <> 1 then On Error Resume Next
 
 ' имена файлов с установщиками\номером актуальной версии, которые лежат в локальном репозитории
 Const csJavaInstaller		= "java_installer.exe"
+Const csJavaInstallerMSI	= "java_installer.msi"
 Const csJavaInstaller64		= "java_installer64.exe"
 Const csJavaInstallerVers	= "java_current.txt"
 Const csFlashPInstaller		= "flashP_installer.exe"	' Flash Plugin (Firefox, Mozilla, Netscape, Opera)
@@ -71,7 +75,8 @@ Const csJavaInstallerLink   = "http://java.com/en/download/windows_manual.jsp"
 Const csFlashPInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player.exe"
 Const csFlashAInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player_ax.exe"
 ' ключи запуска установщиков
-Const csJavaInstallerParams = "/s /v /qn IEXPLORER=1 MOZILLA=1 REBOOT=ReallySuppress JAVAUPDATE=0 WEBSTARTICON=0"
+Const csJavaInstallerParams = "/s"
+Const csJavaInstallerParamsMSI = "/quiet"
 Const csFlashInstallerParams = "/install"
 
 '===================================================================================================
@@ -83,17 +88,19 @@ Const HKEY_USERS 		= &H80000003
 Const HKEY_CURRENT_CONFIG  	= &H80000005
 
 ' глобальные настройки, могут быть переопределены из командной строки
-Dim glbMail 					' /mail+ = отправлять почту при ошибках работы или при наличии обновлений 
-								' /mail- = тихий режим (default)
-Dim gliDebug					' /debug0 = не выводить ничего
+Dim glbDebug					' /debug0 = не выводить ничего
 								' /debug1 = записывать только сообщения о выполняемых действиях (default)
 								' /debug2 = записывать подробные сообщения 
 								' /debug3 = записывать детальные сообщения о вызываемых функцияих и их парметрах
+Dim glbMail 					' /mail+ = отправлять почту при ошибках работы или при наличии обновлений 
+								' /mail- = тихий режим (default)
 Dim glbWEBMode 					' /WEBMode+ = проверять обновления напрямую из интернета (default)
 								' /WEBMode- = из локальной папки (csInstallerPath)
 Dim glbWEBModeSaveInstall		' имеет смысл только при /WEBMode+
 								' /WEBModeSaveInstall+ = сохранять обновления в локальную папку (csInstallerPath)
 								' /WEBModeSaveInstall- =  сохранять обновления в %TEMP% (default)
+Dim glbLogFile							' /LogFile+ = Сохранять вывод в лог-файл
+								' /LogFile- = Не сохранть вывод в лог файл
 'Dim glbComputer					' имя(или адрес) компьютера, на котором проверяем версии плагинов
 ' глобальные переменные
 Dim sInstallerPath							' путь сохранения инсталляшек при /WEBModeSaveInstall+
@@ -101,6 +108,9 @@ Dim sLog 									' общий лог, отсылается на почту при ошибках или появлении обн
 Dim bNeedToSendLog							' флаг необходимости отправки лога на почту
 Dim sJavaNativeUpdateStatus, sJavaWoW6432UpdateStatus, sFlashAUpdateStatus, sFlashPUpdateStatus		' итоговый статус операций обновления
 Dim sJavaVersionCurrent, sFlashPVersionCurrent, sFlashAVersionCurrent ' номер версии при получении обновлений, используется для записи файла с номером версии
+
+Dim objFSO
+Dim objShell	
 
 Sub Main
 	If IsDebug <> 1 then On Error Resume Next
@@ -217,10 +227,25 @@ Sub Main
 				bNeedToSendLog = True
 				If glbWEBMode Then
 					' получаем ссылку на скачку и скачиваем установщик
-					Call HttpGetSave(sJavaGetLinkToDownload, sInstallerPath & csJavaInstaller) 
+					Call HttpGetSave(sJavaGetLinkToDownload("32"), sInstallerPath & csJavaInstaller) 
 				End If
-				' устанавливаем
-				Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
+				' устанавливаем, если установка идет с параметром glbWEBModeSaveInstall то выполняется обычный инсталл, так как она выполняется обычно из-под учетной записи
+				' привилегированного пользователя, а если клиентское обновление, то запускается msi пакет. Это связанно с тем, что при ненативной установке java от имени системы,
+				' а так обычно и происходит при запуске из стартап скрипта, установщик жавы распаковывает msi файл в путь C:\Windows\SysWOW64\config\systemprofile\AppData\LocalLow\,
+				' а ищет его в каталоге C:\Windows\system32\config\systemprofile\AppData\LocalLow\
+				If glbWEBModeSaveInstall then
+					Call WriteLog("Installing EXE package",2)
+					Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
+				else
+					Set objFSO = CreateObject("Scripting.FileSystemObject")
+					If objFSO.FileExists(sInstallerPath & csJavaInstallerMSI) then
+						Call WriteLog("Installing MSI package",2)
+						Call myRun("msiexec /i " & sInstallerPath & csJavaInstallerMSI & " " & csJavaInstallerParamsMSI)
+					else
+						Call WriteLog("The MSI package is missing",2)
+					End If
+					Set objFSO = Nothing
+				End If
 				
 				' повторно проверяем результат
 				If sJavaWoW6432VersionInstalledGet(".") = sJavaVersionCurrent then
@@ -228,6 +253,16 @@ Sub Main
 					If glbWEBModeSaveInstall then
 						' записываем файл с номером актуальной версии установщика
 						Call myRun("cmd /c echo " & sJavaVersionCurrent & "> " & sInstallerPath & csJavaInstallerVers)
+						' копируем распакованую версию java в каталог инсталляции
+						Call WriteLog("Copying MSI package to share directory",2)
+						Set objShell = CreateObject("WScript.Shell")
+						Dim AppData
+						AppData = objShell.expandEnvironmentStrings("%APPDATA%")
+						Set objFSO = CreateObject("Scripting.FileSystemObject")
+						Call WriteLog (AppData & "\..\LocalLow\Sun\Java\jre" & sJavaVersionCurrent & "\jre" & sJavaVersionCurrent & ".msi to " & sInstallerPath & csJavaInstallerMSI,3)
+						objFSO.CopyFile AppData & "\..\LocalLow\Sun\Java\jre" & sJavaVersionCurrent & "\jre" & sJavaVersionCurrent & ".msi", sInstallerPath & csJavaInstallerMSI, True
+						Set objFSO = Nothing
+						Set objShell = Nothing
 					End If
 				Else
 					sJavaWoW6432UpdateStatus = "FAILED"
@@ -316,7 +351,7 @@ Sub Main
 		End If		
 	End If
 	Call WriteLog("FlashPlugin - FINISH",2)
-	
+
 	' при необходимости отправляем отчёт
 	If bNeedToSendLog and glbMail then
 		Call WriteLog("Sending log to e-mail",2)
@@ -324,7 +359,15 @@ Sub Main
 			"], FlashA =[" & sFlashAUpdateStatus & "], FlashP =[" & sFlashPUpdateStatus &_
 			"] on " & sEnvGet("%COMPUTERNAME%"), sLog)
 	End If
-	
+
+	' Записывать отчет в лог файл
+	If glbLogFile then 
+		Set objFSO = CreateObject("Scripting.FileSystemObject").OpenTextFile(ReportFilePath & "Update_flash_java.log",2,true)
+		objFSO.WriteLine(sLog)
+		objFSO.Close
+		Set objFSO = Nothing
+	End If
+
 	Call WriteLog("===================================================================================================",2)
 End Sub ' Main
 
@@ -407,13 +450,19 @@ Function sJavaVersionInstalledGetA (strComputer, sRegPathModifier)
 
 	If IsDebug <> 1 then On Error Resume Next
 	
-	Dim sJavaMajorVersionInstalled, sJavaVersionInstalled
+	Dim sJavaMajorVersionInstalled, sJavaMicroVersion, sJavaBrowserVersionInstalled, sJavaVersionInstalled
 	If strComputer = "" Then strComputer = "."
 	' узнаем поколение установленной Java
 	sJavaMajorVersionInstalled = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "CurrentVersion")
-	sJavaMajorVersionInstalled = Right(sJavaMajorVersionInstalled,1)
-	' узнаем полный номер версии установленной Java
-	sJavaVersionInstalled  = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "Java" & sJavaMajorVersionInstalled & "FamilyVersion")
+	If sJavaMajorVersionInstalled = "1.8" then 
+		sJavaMicroVersion = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment\"& sJavaMajorVersionInstalled, "MicroVersion")	
+		sJavaBrowserVersionInstalled  = mid(sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "BrowserJavaVersion"),4,2)
+		sJavaVersionInstalled = sJavaMajorVersionInstalled & "." & sJavaMicroVersion & "_" &  sJavaBrowserVersionInstalled
+	else
+		sJavaMajorVersionInstalled = Right(sJavaMajorVersionInstalled,1)
+		' узнаем полный номер версии установленной Java
+		sJavaVersionInstalled  = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "Java" & sJavaMajorVersionInstalled & "FamilyVersion")
+	End If
 	If sJavaVersionInstalled = "" then
 		Call WriteLog("sJavaVersionInstalledGetA, INFO: Can't get the installed version of Java from the registry. Probably Java on this computer is not installed",3)
 		'bNeedToSendLog = True
@@ -556,15 +605,24 @@ Function bParseCommandLine
 	' разбирает параметры командной строки, устанавливает значения по умолчанию для глобальных параметров								
 	' возвращает false при появлении ошибок
 	If IsDebug <> 1 then On Error Resume Next
-
 	glbMail = False
-	gliDebug = 1
+	glbDebug = 1
 	glbWEBMode = True
 	glbWEBModeSaveInstall = false
-	
+	glbLogFile = False
 	bParseCommandLine = true
 	dim objNamed
 	Set objNamed = WScript.Arguments.Named
+
+	If objNamed.Exists("debug") Then 
+		select case lcase(objNamed.Item("debug"))
+			case "0","1","2","3"
+				glbDebug = cint(objNamed.Item("debug"))
+				Call WriteLog ("bParseCommandLine, glbDebug = " & glbDebug,3)
+			case else
+				Call WriteLog ("bParseCommandLine, glbDebug ERROR",1)
+		end select
+	End If
 
 	If objNamed.Exists("mail") Then 
 		select case lcase(objNamed.Item("mail"))
@@ -576,16 +634,6 @@ Function bParseCommandLine
 				Call WriteLog ("bParseCommandLine, glbMail = false",3)
 			case else
 				Call WriteLog ("bParseCommandLine, glbMail ERROR",1)
-		end select
-	End If
-
-	If objNamed.Exists("debug") Then 
-		select case lcase(objNamed.Item("debug"))
-			case "0","1","2","3"
-				gliDebug = cint(objNamed.Item("debug"))
-				Call WriteLog ("bParseCommandLine, gliDebug = " & gliDebug,3)
-			case else
-				Call WriteLog ("bParseCommandLine, gliDebug ERROR",1)
 		end select
 	End If
 
@@ -605,13 +653,32 @@ Function bParseCommandLine
 	If objNamed.Exists("webmodesaveinstall") Then 
 		select case lcase(objNamed.Item("webmodesaveinstall"))
 			case "+", "1", "true"
-				glbWEBModeSaveInstall = true
-				Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall = true",3)
+			' На всякий случай Переключаем glbWEBModeSaveInstall в false при glbWEBMode=false, так как теперь от этого ключа зависит установка и сохранение MSI пакета для JAVA 1.8
+				If glbWEBMode then 
+					glbWEBModeSaveInstall = true
+					Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall = true",3)
+				else
+					glbWEBModeSaveInstall = false
+					Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall = false",3)
+				End If
 			case "-", "0", "false"
 				glbWEBModeSaveInstall = false
 				Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall = false",3)
 			case else
 				Call WriteLog ("bParseCommandLine, glbWEBModeSaveInstall ERROR",1)
+		end select
+	End If
+
+	If objNamed.Exists("LogFile") Then 
+		select case lcase(objNamed.Item("LogFile"))
+			case "+", "1", "true"
+				glbLogFile = true
+				Call WriteLog ("bParseCommandLine, glbLogFile = true",3)
+			case "-", "0", "false"
+				glbLogFile = false
+				Call WriteLog ("bParseCommandLine, glbLogFile = false",3)
+			case else
+				Call WriteLog ("bParseCommandLine, glbLogFile ERROR",1)
 		end select
 	End If
 	
@@ -803,9 +870,9 @@ function IsHostCscript()
 end function
 
 Sub WriteLog(sText, iDebug) 
-	' добавляет строку в лог для отправки и вывод в консоль, если iDebug <= gliDebug 
+	' добавляет строку в лог для отправки и вывод в консоль, если iDebug <= glbDebug 
 	If IsDebug <> 1 then On Error Resume Next
-	If iDebug <= gliDebug then
+	If iDebug <= glbDebug then
 		Dim sTemp
 		sTemp = FormatDateTime(Now,3) & " " & sText
 		Wscript.Echo(sTemp)
@@ -817,7 +884,7 @@ Sub WriteLogError(sText, iNumber, sDescription, sSource)
 	' добавляет строку с ошибкой в лог
 	If IsDebug <> 1 then On Error Resume Next
 	Call WriteLog(sText & ", ERROR! : " & iNumber & ": " & sDescription & " generated by " & sSource, 2)
-	If gliDebug >= 2 Then ' если высокая детализация отладки
+	If glbDebug >= 2 Then ' если высокая детализация отладки
 		bNeedToSendLog = True ' сообщить об ошибке почтой
 	End If
 End Sub
