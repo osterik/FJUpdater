@@ -40,6 +40,11 @@
 '/ShowVersion[:comp] = особый режим, выводит номер весий установленных на компьютере плагинов Java & Flash
 ' При запуске без параметров - на локальном компьютере, если есть параметр - он трактуется как имя\адрес компьютера
 '
+'/IgnoreJava    = не проверять Java
+'/IgnoreJavaWoW6432 = не проверять Java
+'/IgnoreFlashA  = не проверять FlashA
+'/IgnoreFlashP  = не проверять FlashP
+'
 'Если при разборе параметров встречается параметр с примечанием "особый режим", то он выполняется немедленно,
 'с учётом уже обработанных модификаторов (mail & debug) и производится выход.
 '
@@ -95,6 +100,11 @@ Dim glbWEBModeSaveInstall		' имеет смысл только при /WEBMode+
 								' /WEBModeSaveInstall+ = сохранять обновления в локальную папку (csInstallerPath)
 								' /WEBModeSaveInstall- =  сохранять обновления в %TEMP% (default)
 'Dim glbComputer					' имя(или адрес) компьютера, на котором проверяем версии плагинов
+Dim glbIgnoreJava				' не проверять Java
+Dim glbIgnoreJavaWoW6432		' не проверять Java
+Dim glbIgnoreFlashA				' не проверять FlashA
+Dim glbIgnoreFlashP				' не проверять FlashP
+
 ' глобальные переменные
 Dim sInstallerPath							' путь сохранения инсталляшек при /WEBModeSaveInstall+
 Dim sLog 									' общий лог, отсылается на почту при ошибках или появлении обновления
@@ -149,7 +159,8 @@ Sub Main
 	sJavaWoW6432UpdateStatus  = "UNKNOWN"
 	sFlashAUpdateStatus       = "UNKNOWN"
 	sFlashPUpdateStatus       = "UNKNOWN"
-	
+
+if glbIgnoreJava = False Then
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("JavaNative - START",2)
 	' JAVA Native (32 on 32, 64 on 64) - сравним версии актуальную и установленную
@@ -198,7 +209,9 @@ Sub Main
 		End If
 	End If
 	Call WriteLog("JavaNative - FINISH",2)
-	
+End If
+
+if glbIgnoreJavaWoW6432 = False Then
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("JavaWoW6432 - START",2)
 	' JAVA 32bit on 64bit system) - сравним версии актуальную и установленную
@@ -239,7 +252,9 @@ Sub Main
 		End If
 	End If
 	Call WriteLog("JavaWoW6432 - FINISH",2)
+End If
 	
+if glbIgnoreFlashA = False Then
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("FlashActiveX - START",2)
 	' FlashActiveX - сравним версии актуальную и установленную
@@ -278,7 +293,9 @@ Sub Main
 		End If
 	End If
 	Call WriteLog("FlashActiveX - FINISH",2)
-	
+End If
+
+if glbIgnoreFlashP = False Then
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("FlashPlugin - START",2)
 	' FlashPlugin - сравним версии актуальную и установленную
@@ -561,6 +578,11 @@ Function bParseCommandLine
 	glbDebug = 1
 	glbWEBMode = True
 	glbWEBModeSaveInstall = false
+
+	glbIgnoreJava   = False
+	glbIgnoreJavaWoW6432 = False
+	glbIgnoreFlashA = False
+	glbIgnoreFlashP = False
 	
 	bParseCommandLine = true
 	dim objNamed
@@ -689,6 +711,26 @@ Function bParseCommandLine
 		Call mySendMail("FJUpdater test mail from " & sEnvGet("%COMPUTERNAME%"), "Test")
 		Call WriteLog ("bParseCommandLine, mailtest",3)
 		WScript.Quit
+	End If
+
+	If objNamed.Exists("IgnoreJava") Then
+		glbIgnoreJava = True
+		Call WriteLog ("bParseCommandLine, IgnoreJava",3)
+	End If
+
+	If objNamed.Exists("IgnoreJavaWoW6432") Then
+		glbIgnoreJavaWoW6432 = True
+		Call WriteLog ("bParseCommandLine, IgnoreJavaWoW6432",3)
+	End If
+
+	If objNamed.Exists("IgnoreFlashA") Then
+		glbIgnoreFlashA = True
+		Call WriteLog ("bParseCommandLine, IgnoreFlashA",3)
+	End If
+
+	If objNamed.Exists("IgnoreFlashP") Then
+		glbIgnoreFlashP = True
+		Call WriteLog ("bParseCommandLine, IgnoreFlashP",3)
 	End If
 
 	If (objNamed.Exists("?")) or (objNamed.Exists("help"))  Then 	
