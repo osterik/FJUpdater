@@ -80,7 +80,8 @@ Const csJavaInstallerLink   = "http://java.com/en/download/windows_manual.jsp"
 Const csFlashPInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player.exe"
 Const csFlashAInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player_ax.exe"
 ' ключи запуска установщиков
-Const csJavaInstallerParams = "/s /v /qn IEXPLORER=1 MOZILLA=1 REBOOT=ReallySuppress JAVAUPDATE=0 WEBSTARTICON=0"
+'Const csJavaInstallerParams = "/s /v /qn IEXPLORER=1 MOZILLA=1 REBOOT=ReallySuppress JAVAUPDATE=0 WEBSTARTICON=0"   ' JAVA 1.7
+Const csJavaInstallerParams = "/s"     '  JAVA 1.8 code by https://github.com/airosa-id
 Const csFlashInstallerParams = "/install"
 
 '===================================================================================================
@@ -461,12 +462,28 @@ Function sJavaVersionInstalledGetA (strComputer, sRegPathModifier)
 	If IsDebug <> 1 then On Error Resume Next
 	
 	Dim sJavaMajorVersionInstalled, sJavaVersionInstalled
+
 	If strComputer = "" Then strComputer = "."
 	' узнаем поколение установленной Java
 	sJavaMajorVersionInstalled = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "CurrentVersion")
-	sJavaMajorVersionInstalled = Right(sJavaMajorVersionInstalled,1)
-	' узнаем полный номер версии установленной Java
-	sJavaVersionInstalled  = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "Java" & sJavaMajorVersionInstalled & "FamilyVersion")
+	Call WriteLog("sJavaVersionInstalledGetA, sJavaMajorVersionInstalled = " & sJavaMajorVersionInstalled,3)
+
+	If sJavaMajorVersionInstalled = "1.8" then ' JAVA 1.8 code by https://github.com/airosa-id
+		Dim sJavaMicroVersion, sJavaBrowserVersionInstalled
+		sJavaMicroVersion = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment\"& sJavaMajorVersionInstalled, "MicroVersion")
+		Call WriteLog("sJavaVersionInstalledGetA, sJavaMicroVersion = " & sJavaMicroVersion,3)
+		sJavaBrowserVersionInstalled  = mid(sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "BrowserJavaVersion"),4,2)
+
+		Call WriteLog("sJavaVersionInstalledGetA, modificator (sJavaBrowserVersionInstalled) = " & sJavaBrowserVersionInstalled, 3)
+		sJavaVersionInstalled = sJavaMajorVersionInstalled & "." & sJavaMicroVersion & "_" &  sJavaBrowserVersionInstalled
+	End If
+
+	If sJavaMajorVersionInstalled = "1.7"  then
+		sJavaMajorVersionInstalled = Right(sJavaMajorVersionInstalled,1)
+		' узнаем полный номер версии установленной Java
+		sJavaVersionInstalled  = sRegRead(strComputer, HKEY_LOCAL_MACHINE, "SOFTWARE" & sRegPathModifier & "\JavaSoft\Java Runtime Environment", "Java" & sJavaMajorVersionInstalled & "FamilyVersion")
+	End If
+
 	If sJavaVersionInstalled = "" then
 		Call WriteLog("sJavaVersionInstalledGetA, INFO: Can't get the installed version of Java from the registry. Probably Java on this computer is not installed",3)
 		'bNeedToSendLog = True
