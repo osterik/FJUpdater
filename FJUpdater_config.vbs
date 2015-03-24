@@ -22,3 +22,6 @@ Const ciSendUsing       = 2 ' 1 = cdoSendUsingPickup, send message using the loc
 ' или откуда устанавливать уже загруженные программы (/WEBMode-)
 ' по соображениям безопасности - RW для сервера (reference computer), RO - для клиентов
 Const csInstallerPath 		= "\\SERVER\INSTALL_CLIENT$\FJUpdater\"
+' path for log-files, RW for all
+' папка для сохранения лог-файлов, должна быть доступна на зпись
+Const csLogsPath 		= "\\SERVER\INSTALL_CLIENT$\FJUpdater.LOG\"

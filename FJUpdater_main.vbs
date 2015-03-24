@@ -19,6 +19,10 @@
 '/mail:1 = отправлять почту при ошибках работы или при наличии обновлений 
 '/mail:0 = тихий режим (default)
 '
+'/LogFile:0 = Не создавать лог (default)
+'/LogFile:1 = Создать логфайл, путь в настройке csLogsPath, имя файла = имя компьютера, новый при каждом запуске,
+'/LogFile:2 = Создать логфайл, путь в настройке csLogsPath, имя файла = имя компьютера, не затирая старые данные
+'
 '/debug:0 = не выводить ничего
 '/debug:1 = записывать только сообщения о выполняемых действиях (default) и ошибки
 '/debug:2 = записывать подробные сообщения 
@@ -90,6 +94,10 @@ Const HKEY_CURRENT_CONFIG  	= &H80000005
 ' глобальные настройки, могут быть переопределены из командной строки
 Dim glbMail 					' /mail+ = отправлять почту при ошибках работы или при наличии обновлений 
 								' /mail- = тихий режим (default)
+Dim glbLogFile					'/LogFile:0 = Не создавать лог (default)
+								'/LogFile:1 = Создать логфайл, путь в настройке csLogsPath, имя файла = имя компьютера, новый при каждом запуске,
+								'/LogFile:2 = Создать логфайл, путь в настройке csLogsPath, имя файла = имя компьютера, не затирая старые данные
+
 Dim glbDebug					' /debug0 = не выводить ничего
 								' /debug1 = записывать только сообщения о выполняемых действиях (default)
 								' /debug2 = записывать подробные сообщения 
@@ -205,7 +213,7 @@ if glbIgnoreJava = False Then
 				Call WriteLog("Java Update status = " & sJavaNativeUpdateStatus,1)
 			Else
 				Call WriteLog("Installed and current Java version is identical",2)
-			End If		
+			End If
 		End If
 	End If
 	Call WriteLog("JavaNative - FINISH",2)
@@ -234,7 +242,7 @@ if glbIgnoreJavaWoW6432 = False Then
 				End If
 				' устанавливаем
 				Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
-				
+
 				' повторно проверяем результат
 				If sJavaWoW6432VersionInstalledGet(".") = sJavaVersionCurrent then
 					sJavaWoW6432UpdateStatus = "SUCCESS"
@@ -333,15 +341,43 @@ if glbIgnoreFlashP = False Then
 		End If		
 	End If
 	Call WriteLog("FlashPlugin - FINISH",2)
+End If
+
+
+	dim sComputerName
+	sComputerName = sEnvGet("%COMPUTERNAME%")
 	
 	' при необходимости отправляем отчёт
 	If bNeedToSendLog and glbMail then
 		Call WriteLog("Sending log to e-mail",2)
 		Call mySendMail("Updater Java=[" & sJavaNativeUpdateStatus &_
 			"], FlashA =[" & sFlashAUpdateStatus & "], FlashP =[" & sFlashPUpdateStatus &_
-			"] on " & sEnvGet("%COMPUTERNAME%"), sLog)
+			"] on " & sComputerName, sLog)
 	End If
-	
+
+	' при необходимости записываем отчёт в лог-файл
+	if glbLogFile > 0 then
+		Dim objFSO,objFile,sLogFile
+
+		sLogFile = csLogsPath & sComputerName & ".log"
+		Call WriteLog("Writing log to " & sLogFile,2)
+
+		Set objFSO = CreateObject("Scripting.FileSystemObject")
+		Select Case glbLogFile
+		Case 1
+			Set objFile = objFSO.OpenTextFile(sLogFile, 2, true) ' ForWriting
+		Case 2
+			Set objFile = objFSO.OpenTextFile(sLogFile, 8, true) ' ForAppending
+		End Select
+
+		objFile.WriteLine(sLog)
+		objFile.WriteLine("===================================================================================================")
+		objFile.WriteLine("")
+		objFile.Close
+		Set objFSO = Nothing
+	End If
+
+
 	Call WriteLog("===================================================================================================",2)
 End Sub ' Main
 
@@ -575,6 +611,7 @@ Function bParseCommandLine
 	If IsDebug <> 1 then On Error Resume Next
 
 	glbMail = False
+	glbLogFile = 0
 	glbDebug = 1
 	glbWEBMode = True
 	glbWEBModeSaveInstall = false
@@ -612,6 +649,21 @@ Function bParseCommandLine
 		end select
 	End If
 
+	If objNamed.Exists("logfile") Then
+		select case lcase(objNamed.Item("logfile"))
+			case "+", "1", "true"
+				glbLogFile = 1
+				Call WriteLog ("bParseCommandLine, glbLogFile = 1",3)
+			case "-", "0", "false"
+				glbLogFile = 0
+				Call WriteLog ("bParseCommandLine, glbLogFile = 0",3)
+			case "2"
+				glbLogFile = 2
+				Call WriteLog ("bParseCommandLine, glbLogFile = 2",3)
+			case else
+				Call WriteLog ("bParseCommandLine, glbLogFile ERROR",1)
+		end select
+	End If
 
 	If objNamed.Exists("webmode") Then 
 		select case lcase(objNamed.Item("webmode"))
@@ -734,7 +786,6 @@ Function bParseCommandLine
 		glbIgnoreFlashP = True
 		Call WriteLog ("bParseCommandLine, IgnoreFlashP",3)
 	End If
-
 	If (objNamed.Exists("?")) or (objNamed.Exists("help"))  Then 	
 		Call PrintHelp()
 		WScript.Quit
