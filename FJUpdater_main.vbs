@@ -588,6 +588,17 @@ Function bParseCommandLine
 	dim objNamed
 	Set objNamed = WScript.Arguments.Named
 
+	' must be first
+	If objNamed.Exists("debug") Then 
+		select case lcase(objNamed.Item("debug"))
+			case "0","1","2","3"
+				glbDebug = cint(objNamed.Item("debug"))
+				Call WriteLog ("bParseCommandLine, glbDebug = " & glbDebug,3)
+			case else
+				Call WriteLog ("bParseCommandLine, glbDebug ERROR",1)
+		end select
+	End If
+
 	If objNamed.Exists("mail") Then 
 		select case lcase(objNamed.Item("mail"))
 			case "+", "1", "true"
@@ -601,15 +612,6 @@ Function bParseCommandLine
 		end select
 	End If
 
-	If objNamed.Exists("debug") Then 
-		select case lcase(objNamed.Item("debug"))
-			case "0","1","2","3"
-				glbDebug = cint(objNamed.Item("debug"))
-				Call WriteLog ("bParseCommandLine, glbDebug = " & glbDebug,3)
-			case else
-				Call WriteLog ("bParseCommandLine, glbDebug ERROR",1)
-		end select
-	End If
 
 	If objNamed.Exists("webmode") Then 
 		select case lcase(objNamed.Item("webmode"))
