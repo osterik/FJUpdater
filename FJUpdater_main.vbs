@@ -180,8 +180,10 @@ if glbIgnoreJava = False Then
 		sJavaVersionCurrent = sJavaVersionLocalGet	
 	End If
 	If sJavaVersionCurrent <> "" then 
-		If  sJavaVersionInstalledGet(".") <> "" then ' на компьютере присутствует какая-то версия
-			If sJavaVersionInstalledGet(".") <> sJavaVersionCurrent then
+		Dim sJavaVersionInstalled
+		sJavaVersionInstalled = sJavaVersionInstalledGet(".")
+		If  sJavaVersionInstalled <> "" then ' на компьютере присутствует какая-то версия
+			If sJavaVersionInstalled <> sJavaVersionCurrent then
 				' не совпадают, обновляем
 				Call WriteLog("WARNING! Installed and current Native(32 on 32, 64 on 64) Java version is NOT identical",1)
 				' надо будет отправить отчёт
@@ -200,6 +202,7 @@ if glbIgnoreJava = False Then
 				else
 					Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
 				End If
+				Call WriteLog("Install complete, check Native(32 on 32, 64 on 64) Java version again",2)
 			
 				' повторно проверяем результат
 				If sJavaVersionInstalledGet(".") = sJavaVersionCurrent then
@@ -231,8 +234,10 @@ if glbIgnoreJavaWoW6432 = False Then
 		sJavaVersionCurrent = sJavaVersionLocalGet	
 	End If
 	If sJavaVersionCurrent <> "" then 
-		If  sJavaWoW6432VersionInstalledGet(".") <> "" then ' на компьютере присутствует какая-то версия
-			If sJavaWoW6432VersionInstalledGet(".") <> sJavaVersionCurrent then
+		Dim sJavaWoW6432VersionInstalled
+		sJavaWoW6432VersionInstalled = sJavaWoW6432VersionInstalledGet(".")
+		If  sJavaWoW6432VersionInstalled <> "" then ' на компьютере присутствует какая-то версия
+			If sJavaWoW6432VersionInstalled <> sJavaVersionCurrent then
 				' не совпадают, обновляем
 				Call WriteLog("WARNING! Installed and current WoW6432(32bit Java on 64bit OS) Java version is NOT identical",1)
 				' надо будет отправить отчёт
@@ -243,6 +248,7 @@ if glbIgnoreJavaWoW6432 = False Then
 				End If
 				' устанавливаем
 				Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
+				Call WriteLog("Install complete, check WoW6432(32bit Java on 64bit OS) Java version again",2)
 
 				' повторно проверяем результат
 				If sJavaWoW6432VersionInstalledGet(".") = sJavaVersionCurrent then
