@@ -36,8 +36,10 @@
 'ключ /WEBModeSaveInstall имеет смысл только при /WEBMode:1
 '
 '/WEBModeSaveInstallForce = особый режим, принудительно скачать последение версии установщиков
-'и сохранить в локальную папку (csInstallerPath). не проверяет установленные версии плагинов.
-'Используется на компьютере администратора при запуске механизма автоматического развёртывания обновлений 
+'и сохранить в локальную папку (csInstallerPath), если расположенные там версии плагинов не совпадают
+'с опубликованными на сайте Oracle&Adobe
+'Используется на компьютере администратора при запуске механизма автоматического развёртывания обновлений,
+'а также для периодической проверки, не появились ли более другие версии.
 '
 '/MailTest = особый режим, проверка настроек отправки почты, присылает тестовое сообщение
 '
@@ -130,15 +132,24 @@ Sub Main
 		wscript.quit
 	End If
 
+	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.7 (c) Ilya Kisleyko, osterik@gmail.com", 2)
+
+	' пока нет необходимости отправлять логи на почту
+	bNeedToSendLog = false
+
+	' статус операций
+	sJavaNativeUpdateStatus   = "UNKNOWN"
+	sJavaWoW6432UpdateStatus  = "UNKNOWN"
+	sFlashAUpdateStatus       = "UNKNOWN"
+	sFlashPUpdateStatus       = "UNKNOWN"
+
 	' Parse command-line parameters
 	If bParseCommandLine = false Then
 		' не смогли разобрать параметры командной строки
 		Call WriteLog("Main, ERROR! can't parse command line switches!", 1)
 		Exit Sub 
 	End If
-	
-	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.7 (c) Ilya Kisleyko, osterik@gmail.com", 2)
-	
+
 	'путь сохранения инсталляшек...
 	If glbWEBMode then 
 		If glbWEBModeSaveInstall Then
@@ -154,15 +165,6 @@ Sub Main
 	If Right(sInstallerPath,1) <> "\" Then 
 		sInstallerPath = sInstallerPath + "\"
 	End If
-
-	' пока нет необходимости отправлять логи на почту
-	bNeedToSendLog = false
-	
-	' статус операций
-	sJavaNativeUpdateStatus   = "UNKNOWN"
-	sJavaWoW6432UpdateStatus  = "UNKNOWN"
-	sFlashAUpdateStatus       = "UNKNOWN"
-	sFlashPUpdateStatus       = "UNKNOWN"
 
 if glbIgnoreJava = False Then
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
@@ -345,19 +347,32 @@ if glbIgnoreFlashP = False Then
 	Call WriteLog("FlashPlugin - FINISH",2)
 End If
 
+	' при необходимости отправляем отчёт
+	Call SendLog()
 
+	' при необходимости записываем отчёт в лог-файл
+	Call WriteLogToFile()
+
+	Call WriteLog("===================================================================================================",2)
+End Sub ' Main
+
+Sub SendLog
 	dim sComputerName
 	sComputerName = sEnvGet("%COMPUTERNAME%")
-	
-	' при необходимости отправляем отчёт
+
 	If bNeedToSendLog and glbMail then
 		Call WriteLog("Sending log to e-mail",2)
 		Call mySendMail("Updater Java=[" & sJavaNativeUpdateStatus &_
+			"], JavaWoW6432 = [" & sJavaWoW6432UpdateStatus &_
 			"], FlashA =[" & sFlashAUpdateStatus & "], FlashP =[" & sFlashPUpdateStatus &_
 			"] on " & sComputerName, sLog)
 	End If
+End Sub
 
-	' при необходимости записываем отчёт в лог-файл
+Sub WriteLogToFile
+	dim sComputerName
+	sComputerName = sEnvGet("%COMPUTERNAME%")
+
 	if glbLogFile > 0 then
 		Dim objFSO,objFile,sLogFile
 
@@ -378,10 +393,7 @@ End If
 		objFile.Close
 		Set objFSO = Nothing
 	End If
-
-
-	Call WriteLog("===================================================================================================",2)
-End Sub ' Main
+End Sub
 
 Function sJavaGetLinkToDownload (sBits)
 	' парсит страничку csJavaInstallerLink
@@ -717,28 +729,65 @@ Function bParseCommandLine
 		If Right(sInstallerPath,1) <> "\" Then 
 			sInstallerPath = sInstallerPath + "\"
 		End If
+
 		'java
 		Call WriteLog("---------------------------------------------------------------------------------------------------",2)
-		Call WriteLog ("Java 32bit - START",2)		
- 		Call HttpGetSave(sJavaGetLinkToDownload(""), sInstallerPath & csJavaInstaller) 
-		Call WriteLog("---------------------------------------------------------------------------------------------------",2)
-		Call WriteLog ("Java 64bit - START",2)		
-		Call HttpGetSave(sJavaGetLinkToDownload("64"), sInstallerPath & csJavaInstaller64) 
+		Call WriteLog("JAVA - Compare downloaded and current Java version",2)
+		if sJavaVersionWEBGet() <>  sJavaVersionLocalGet() then
+			Call WriteLog("WARNING! Downloaded and current Java version is NOT identical",1)
+			bNeedToSendLog = True
+			Call WriteLog ("Java 32bit - START ---",2)
+			Call HttpGetSave(sJavaGetLinkToDownload(""), sInstallerPath & csJavaInstaller)
+			Call WriteLog ("Java 64bit - START ---",2)
+			Call HttpGetSave(sJavaGetLinkToDownload("64"), sInstallerPath & csJavaInstaller64)
+
+			sJavaVersionCurrent = sJavaVersionWEBGet
+			Call myRun("cmd /c echo " & sJavaVersionCurrent & "> " & sInstallerPath & csJavaInstallerVers)
+			sJavaNativeUpdateStatus   = "UPDATED"
+			sJavaWoW6432UpdateStatus  = "UPDATED"
+			Call WriteLog ("Java - FINISH  ===",2)
+		End If
+		Call WriteLog("JAVA - OK",2)
+		Call WriteLog("===================================================================================================",2)
 		
-		sJavaVersionCurrent = sJavaVersionWEBGet
-		Call myRun("cmd /c echo " & sJavaVersionCurrent & "> " & sInstallerPath & csJavaInstallerVers)
 		'flash ActicveX
 		Call WriteLog("---------------------------------------------------------------------------------------------------",2)
-		Call WriteLog ("FlashA - START",2)		
-		Call HttpGetSave(csFlashAInstallerLink, sInstallerPath & csFlashAInstaller)
-		sFlashAVersionCurrent = sFlashVersionWEBGet("A")
-		Call myRun("cmd /c echo " & sFlashAVersionCurrent & "> " & sInstallerPath & csFlashAInstallerVers)
+		Call WriteLog("FlashActiveX - Compare downloaded and current FlashActiveX version",2)
+		if sFlashVersionWEBGet("A") <> sFlashVersionLocalGet("A") then
+			Call WriteLog("WARNING! Downloaded and current FlashActiveX version is NOT identical",1)
+			bNeedToSendLog = True
+			Call WriteLog ("FlashA - START ---",2)
+			Call HttpGetSave(csFlashAInstallerLink, sInstallerPath & csFlashAInstaller)
+			sFlashAVersionCurrent = sFlashVersionWEBGet("A")
+			Call myRun("cmd /c echo " & sFlashAVersionCurrent & "> " & sInstallerPath & csFlashAInstallerVers)
+			sFlashAUpdateStatus       = "UPDATED"
+			Call WriteLog ("FlashA - FINISH ===",2)
+		End If
+		Call WriteLog("FlashActiveX - OK",2)
+		Call WriteLog("===================================================================================================",2)
 		'flash Plugin
 		Call WriteLog("---------------------------------------------------------------------------------------------------",2)
-		Call WriteLog ("FlashP - START",2)		
-		Call HttpGetSave(csFlashPInstallerLink, sInstallerPath & csFlashPInstaller)
-		sFlashPVersionCurrent = sFlashVersionWEBGet("P")
-		Call myRun("cmd /c echo " & sFlashPVersionCurrent & "> " & sInstallerPath & csFlashPInstallerVers)
+		Call WriteLog("FlashPlugin - Compare downloaded and current FlashPlugin version",2)
+		if sFlashVersionWEBGet("P") <> sFlashVersionLocalGet("P") then
+			Call WriteLog("WARNING! Downloaded and current FlashPlugin version is NOT identical",1)
+			bNeedToSendLog = True
+			Call WriteLog("---------------------------------------------------------------------------------------------------",2)
+			Call WriteLog ("FlashP - START ---",2)
+			Call HttpGetSave(csFlashPInstallerLink, sInstallerPath & csFlashPInstaller)
+			sFlashPVersionCurrent = sFlashVersionWEBGet("P")
+			Call myRun("cmd /c echo " & sFlashPVersionCurrent & "> " & sInstallerPath & csFlashPInstallerVers)
+			sFlashPUpdateStatus       = "UPDATED"
+			Call WriteLog ("FlashP - FINISH ===",2)
+		End If
+		Call WriteLog("FlashPlugin - OK",2)
+		Call WriteLog("===================================================================================================",2)
+
+		' при необходимости отправляем отчёт
+		Call SendLog()
+
+		' при необходимости записываем отчёт в лог-файл
+		Call WriteLogToFile()
+
 		Call WriteLog("===================================================================================================",2)
 		WScript.Quit
 	End If
@@ -763,7 +812,7 @@ Function bParseCommandLine
 		End If
 		' TODO - переделать вывод отчёта
 		If Is64BitSystem (strComputer) = true then
-			' Native (64 bit)
+		   ' родная битность
 			call WriteLog("JAVA64 = " & sJavaVersionInstalledGet(strComputer) ,1)
 			' для 64 битных систем дополнительно показываем версию 32й явы
 			call WriteLog("JAVA32 = " & sJavaWoW6432VersionInstalledGet(strComputer) ,1)
