@@ -4,7 +4,7 @@
 ' 
 ' AUTHOR  : Ilya Kisleyko
 ' E-MAIL  : osterik@gmail.com
-' DATE    : 14.09.2014
+' DATE    : 20.04.2015
 ' NAME    : FJUpdater_main.vbs
 ' COMMENT : Скрипт для проверки актуальности установленных на компьютере версий Java&Flash
 '          и автоматического обновления (через интернет(HTTP) или локальную сеть(SMB)) при необходимости.
@@ -16,7 +16,7 @@
 'При запуске без параметров просто выполняет обновление установленных плагинов через интернет
 '
 'Параметры командной строки:
-'/mail:1 = отправлять почту при ошибках работы или при наличии обновлений 
+'/mail:1 = отправлять почту при ошибках работы или при наличии обновлений
 '/mail:0 = тихий режим (default)
 '
 '/LogFile:0 = Не создавать лог (default)
@@ -25,7 +25,7 @@
 '
 '/debug:0 = не выводить ничего
 '/debug:1 = записывать только сообщения о выполняемых действиях (default) и ошибки
-'/debug:2 = записывать подробные сообщения 
+'/debug:2 = записывать подробные сообщения
 '/debug:3 = записывать детальные сообщения о вызываемых функцияих и их парметрах
 '
 '/WebMode:1 = проверять обновления напрямую из интернета (default)
@@ -44,10 +44,10 @@
 '/ShowVersion[:comp] = особый режим, выводит номер весий установленных на компьютере плагинов Java & Flash
 ' При запуске без параметров - на локальном компьютере, если есть параметр - он трактуется как имя\адрес компьютера
 '
-'/IgnoreJava    = не проверять Java
-'/IgnoreJavaWoW6432 = не проверять Java
-'/IgnoreFlashA  = не проверять FlashA
-'/IgnoreFlashP  = не проверять FlashP
+'/IgnoreJava        = не проверять Java Native (32 on 32, 64 on 64)
+'/IgnoreJavaWoW6432 = не проверять Java WoW6432 (32bit on 64bit system)
+'/IgnoreFlashA      = не проверять FlashA
+'/IgnoreFlashP      = не проверять FlashP
 '
 'Если при разборе параметров встречается параметр с примечанием "особый режим", то он выполняется немедленно,
 'с учётом уже обработанных модификаторов (mail & debug) и производится выход.
@@ -72,7 +72,7 @@ Const csFlashAInstaller		= "flashA_installer.exe"	' Flash ActiveX (IE)
 Const csFlashAInstallerVers	= "flashA_current.txt"
 
 '===================================================================================================
-' где смотреть номера актуальных версий ((при /WEBMode+)
+' где смотреть номера актуальных версий ((при /WEBMode:1)
 Const csJavaVersionCurrentLnk = "http://www.java.com/applet/JreCurrentVersion2.txt"
 Const csFlashVersionCurrentLnk = "http://www.adobe.com/software/flash/about/"
 ' и где искать\качать инсталляшки
@@ -93,31 +93,31 @@ Const HKEY_USERS 		= &H80000003
 Const HKEY_CURRENT_CONFIG  	= &H80000005
 
 ' глобальные настройки, могут быть переопределены из командной строки
-Dim glbMail 					' /mail+ = отправлять почту при ошибках работы или при наличии обновлений 
-								' /mail- = тихий режим (default)
+Dim glbMail 					' /mail:1 = отправлять почту при ошибках работы или при наличии обновлений 
+						' /mail:0 = тихий режим (default)
 Dim glbLogFile					'/LogFile:0 = Не создавать лог (default)
-								'/LogFile:1 = Создать логфайл, путь в настройке csLogsPath, имя файла = имя компьютера, новый при каждом запуске,
-								'/LogFile:2 = Создать логфайл, путь в настройке csLogsPath, имя файла = имя компьютера, не затирая старые данные
+						'/LogFile:1 = Создать логфайл, путь в настройке csLogsPath, имя файла = имя компьютера, новый при каждом запуске,
+						'/LogFile:2 = Создать логфайл, путь в настройке csLogsPath, имя файла = имя компьютера, не затирая старые данные
 
-Dim glbDebug					' /debug0 = не выводить ничего
-								' /debug1 = записывать только сообщения о выполняемых действиях (default)
-								' /debug2 = записывать подробные сообщения 
-								' /debug3 = записывать детальные сообщения о вызываемых функцияих и их парметрах
-Dim glbWEBMode 					' /WEBMode+ = проверять обновления напрямую из интернета (default)
-								' /WEBMode- = из локальной папки (csInstallerPath)
-Dim glbWEBModeSaveInstall		' имеет смысл только при /WEBMode+
-								' /WEBModeSaveInstall+ = сохранять обновления в локальную папку (csInstallerPath)
-								' /WEBModeSaveInstall- =  сохранять обновления в %TEMP% (default)
-'Dim glbComputer					' имя(или адрес) компьютера, на котором проверяем версии плагинов
-Dim glbIgnoreJava				' не проверять Java
-Dim glbIgnoreJavaWoW6432		' не проверять Java
+Dim glbDebug					' /debug:0 = не выводить ничего
+						' /debug:1 = записывать только сообщения о выполняемых действиях (default)
+						' /debug:2 = записывать подробные сообщения 
+						' /debug:3 = записывать детальные сообщения о вызываемых функцияих и их парметрах
+Dim glbWEBMode 					' /WEBMode:1 = проверять обновления напрямую из интернета (default)
+						' /WEBMode:0 = из локальной папки (csInstallerPath)
+Dim glbWEBModeSaveInstall			' имеет смысл только при /WEBMode:1
+						' /WEBModeSaveInstall:1 = сохранять обновления в локальную папку (csInstallerPath)
+						' /WEBModeSaveInstall:0 =  сохранять обновления в %TEMP% (default)
+'Dim glbComputer				' имя(или адрес) компьютера, на котором проверяем версии плагинов
+Dim glbIgnoreJava				' не проверять Java Native (32 on 32, 64 on 64)
+Dim glbIgnoreJavaWoW6432			' не проверять Java WoW6432 (32bit on 64bit system)
 Dim glbIgnoreFlashA				' не проверять FlashA
 Dim glbIgnoreFlashP				' не проверять FlashP
 
 ' глобальные переменные
-Dim sInstallerPath							' путь сохранения инсталляшек при /WEBModeSaveInstall+
-Dim sLog 									' общий лог, отсылается на почту при ошибках или появлении обновления
-Dim bNeedToSendLog							' флаг необходимости отправки лога на почту
+Dim sInstallerPath				' путь сохранения инсталляшек при /WEBModeSaveInstall:1
+Dim sLog 					' общий лог, отсылается на почту при ошибках или появлении обновления
+Dim bNeedToSendLog				' флаг необходимости отправки лога на почту
 Dim sJavaNativeUpdateStatus, sJavaWoW6432UpdateStatus, sFlashAUpdateStatus, sFlashPUpdateStatus		' итоговый статус операций обновления
 Dim sJavaVersionCurrent, sFlashPVersionCurrent, sFlashAVersionCurrent ' номер версии при получении обновлений, используется для записи файла с номером версии
 
@@ -127,39 +127,34 @@ Sub Main
 	' Abort If the host is not cscript
 	If not IsHostCscript() then
 		call wscript.echo("Рекомендуется запускать данный скрипт с использованием CScript.")
-		'"Рекомендуется запускать данный скрипт с использованием CScript."  	& vbCRLF & vbCRLF &  
-		'"Для этого:"														& vbCRLF & vbCRLF & _
-		'"1. Используйте ""CScript " & WScript.ScriptName & " /параметры"" "	& vbCRLF & vbCRLF & _
-		'"или" 																& vbCRLF & vbCRLF & _
-		'"2. Замените  WScript на  CScript (может"									& vbCRLF & _
-		'"   Для этого выполните ""CScript //H:CScript //S"" "				& vbCRLF & _
-		'"   и запускайте скрипт """ & WScript.ScriptName & " /параметры""."	& vbCRLF
 		wscript.quit
 	End If
-	
+
+	' Parse command-line parameters
 	If bParseCommandLine = false Then
 		' не смогли разобрать параметры командной строки
 		Call WriteLog("Main, ERROR! can't parse command line switches!", 1)
 		Exit Sub 
 	End If
 	
-	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.6 (c) Ilya Kisleyko, osterik@gmail.com", 2)
+	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.7 (c) Ilya Kisleyko, osterik@gmail.com", 2)
 	
 	'путь сохранения инсталляшек...
 	If glbWEBMode then 
 		If glbWEBModeSaveInstall Then
-			sInstallerPath = csInstallerPath		' ...при /WEBModeSaveInstall+
+			sInstallerPath = csInstallerPath	' ...при /WEBModeSaveInstall:1
 		Else
-			sInstallerPath = sEnvGet("%temp%")		' ...при /WEBModeSaveInstall-
+			sInstallerPath = sEnvGet("%temp%")	' ...при /WEBModeSaveInstall:0
 		End If
 	else
-		sInstallerPath = csInstallerPath			' ..при локальном режиме
+		sInstallerPath = csInstallerPath		' ..при локальном режиме
 	End If
 	
 	' при необходимости добавляем слэш в конце рабочего каталога
 	If Right(sInstallerPath,1) <> "\" Then 
 		sInstallerPath = sInstallerPath + "\"
 	End If
+
 	' пока нет необходимости отправлять логи на почту
 	bNeedToSendLog = false
 	
@@ -175,9 +170,9 @@ if glbIgnoreJava = False Then
 	' JAVA Native (32 on 32, 64 on 64) - сравним версии актуальную и установленную
 	' что принимать за актуальную версию ...
 	If glbWEBMode Then ' WWW
-		sJavaVersionCurrent = sJavaVersionWEBGet
+		sJavaVersionCurrent = sJavaVersionWEBGet()
 	Else               ' локальное хранилище
-		sJavaVersionCurrent = sJavaVersionLocalGet	
+		sJavaVersionCurrent = sJavaVersionLocalGet()
 	End If
 	If sJavaVersionCurrent <> "" then 
 		Dim sJavaVersionInstalled
@@ -226,12 +221,12 @@ End If
 if glbIgnoreJavaWoW6432 = False Then
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 	Call WriteLog("JavaWoW6432 - START",2)
-	' JAVA 32bit on 64bit system) - сравним версии актуальную и установленную
+	' JAVA WoW (32bit on 64bit system) - сравним версии актуальную и установленную
 	' что принимать за актуальную версию ...
 	If glbWEBMode Then ' WWW
-		sJavaVersionCurrent = sJavaVersionWEBGet
+		sJavaVersionCurrent = sJavaVersionWEBGet()
 	Else               ' локальное хранилище
-		sJavaVersionCurrent = sJavaVersionLocalGet	
+		sJavaVersionCurrent = sJavaVersionLocalGet()
 	End If
 	If sJavaVersionCurrent <> "" then 
 		Dim sJavaWoW6432VersionInstalled
@@ -395,7 +390,7 @@ Function sJavaGetLinkToDownload (sBits)
 	If IsDebug <> 1 then On Error Resume Next
 	Dim sHttpText				' содержимое скаченной страницы
 	Dim objRegExp				' для получения ссылки на установщик
-	Dim objMatches, objMatch	' вспомогательные объекты при парсинге html
+	Dim objMatches, objMatch		' вспомогательные объекты при парсинге html
 	
 	' скачиваем страницу выбора фалов для ручной загрузки Java в sHttpText
 	Call WriteLog("sJavaGetLinkToDownload(" & sBits &"), Downloadning HTML",3)
@@ -767,8 +762,8 @@ Function bParseCommandLine
 			End If
 		End If
 		' TODO - переделать вывод отчёта
-		If Is64BitSystem (".") = true then 
-		   ' родная битность
+		If Is64BitSystem (strComputer) = true then
+			' Native (64 bit)
 			call WriteLog("JAVA64 = " & sJavaVersionInstalledGet(strComputer) ,1)
 			' для 64 битных систем дополнительно показываем версию 32й явы
 			call WriteLog("JAVA32 = " & sJavaWoW6432VersionInstalledGet(strComputer) ,1)
@@ -776,9 +771,6 @@ Function bParseCommandLine
 			call WriteLog("JAVA   = " & sJavaVersionInstalledGet(strComputer) ,1)
 		End If
 
-		If Is64BitSystem (".") = true then 
-			
-		End If
 		call WriteLog("FlashA = " & sFlashVersionInstalledGet(strComputer, "A") ,1)
 		call WriteLog("FlashP = " & sFlashVersionInstalledGet(strComputer, "P") ,1)
 		WScript.Quit
