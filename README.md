@@ -17,9 +17,9 @@ Installation & Usage
 cscript \\SERVER\INSTALL\FJUpdater.wsf /WEBModeSaveInstallForce /mail:1 /debug:3
 ```
 
-5) Configure a regular check for updates on the **reference computer** (virtual machine)
+5) Configure a regular check for updates via "Task Scheduler"
 ```sh
-cscript \\SERVER\INSTALL\FJUpdater.wsf /webmode:1 /WEBModeSaveInstall:1 /mail:1 /debug:3
+cscript \\SERVER\INSTALL\FJUpdater.wsf /WEBModeSaveInstallForce /mail:1 /debug:3
 ```
 
 6) Adjust the installation of updates for **other computers** (at startup, using GPO)
@@ -50,6 +50,9 @@ v.2.6
 
   added Java 64-bit support
 
+v.2.7
+
+  modified WEBModeSaveInstallForce key. A "reference computer (virtual machine)" is no needed anymore, regular checks can be configured on any computer.
 
 
 License
