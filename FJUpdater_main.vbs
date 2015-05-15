@@ -871,7 +871,7 @@ sub PrintHelp
 	Set objFSO = CreateObject("Scripting.FileSystemObject")
 	' TODO = сделать парсинг WScript.ScriptName и замену wsf на vbs (или txt)
 	' из полного имени скрипта вырезаем имя скрипта, получаем путь запуска скрипта
-	Set fIn = objFSO.OpenTextFile(left (WScript.ScriptFullName, Len(WScript.ScriptFullName)-Len(WScript.ScriptName)) & "FJUpdater.vbs", 1)
+	Set fIn = objFSO.OpenTextFile(left (WScript.ScriptFullName, Len(WScript.ScriptFullName)-Len(WScript.ScriptName)) & "FJUpdater_main.vbs", 1)
 	
 	Do While (Not fIn.AtEndOfStream) 
 		sTemp = fIn.ReadLine
