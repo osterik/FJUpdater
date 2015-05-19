@@ -54,6 +54,14 @@ v.2.7
 
   modified WEBModeSaveInstallForce key. A "reference computer (virtual machine)" is no needed anymore, regular checks can be configured on any computer.
 
+v.2.8
+
+  Flash : since v. 17.0.0.188 changed creating Flash WEB link from
+
+    "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player_ax.exe"
+  to
+
+    "http://fpdownload.macromedia.com/pub/flashplayer/pdc/17.0.0.188/install_flash_player_ax.exe"
 
 License
 ----

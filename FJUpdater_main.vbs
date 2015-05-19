@@ -4,7 +4,7 @@
 ' 
 ' AUTHOR  : Ilya Kisleyko
 ' E-MAIL  : osterik@gmail.com
-' DATE    : 20.04.2015
+' DATE    : 18.05.2015
 ' NAME    : FJUpdater_main.vbs
 ' COMMENT : —крипт дл€ проверки актуальности установленных на компьютере версий Java&Flash
 '          и автоматического обновлени€ (через интернет(HTTP) или локальную сеть(SMB)) при необходимости.
@@ -79,8 +79,10 @@ Const csJavaVersionCurrentLnk = "http://www.java.com/applet/JreCurrentVersion2.t
 Const csFlashVersionCurrentLnk = "http://www.adobe.com/software/flash/about/"
 ' и где искать\качать инсталл€шки
 Const csJavaInstallerLink   = "http://java.com/en/download/windows_manual.jsp"
-Const csFlashPInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player.exe"
-Const csFlashAInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player_ax.exe"
+'Const csFlashPInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player.exe"
+'Const csFlashAInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/latest/help/install_flash_player_ax.exe"
+'с версии 17.0.0.188 - не работает, ссылки формируютс€ через функцию sFlashInstallerLinkGet
+Const csFlashInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/pdc/"
 ' ключи запуска установщиков
 'Const csJavaInstallerParams = "/s /v /qn IEXPLORER=1 MOZILLA=1 REBOOT=ReallySuppress JAVAUPDATE=0 WEBSTARTICON=0"   ' JAVA 1.7
 Const csJavaInstallerParams = "/s"     '  JAVA 1.8 code by https://github.com/airosa-id
@@ -132,7 +134,7 @@ Sub Main
 		wscript.quit
 	End If
 
-	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.7 (c) Ilya Kisleyko, osterik@gmail.com", 2)
+	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.8 (c) Ilya Kisleyko, osterik@gmail.com", 2)
 
 	' пока нет необходимости отправл€ть логи на почту
 	bNeedToSendLog = false
@@ -286,7 +288,7 @@ if glbIgnoreFlashA = False Then
 				bNeedToSendLog = True
 				If glbWEBMode Then
 					' получаем ссылку на скачку и скачиваем установщик
-					Call HttpGetSave(csFlashAInstallerLink, sInstallerPath & csFlashAInstaller)
+					Call HttpGetSave(sFlashInstallerLinkGet("A",sFlashPVersionCurrent), sInstallerPath & csFlashAInstaller)
 				End If
 				' устанавливаем
 				Call myRun(sInstallerPath & csFlashAInstaller & " " & csFlashInstallerParams)
@@ -326,7 +328,7 @@ if glbIgnoreFlashP = False Then
 				bNeedToSendLog = True
 				If glbWEBMode Then
 					' получаем ссылку на скачку и скачиваем установщик
-					Call HttpGetSave(csFlashPInstallerLink, sInstallerPath & csFlashPInstaller)
+					Call HttpGetSave(sFlashInstallerLinkGet("P",sFlashPVersionCurrent), sInstallerPath & csFlashPInstaller)
 				End If
 				' устанавливаем
 				Call myRun(sInstallerPath & csFlashPInstaller & " " & csFlashInstallerParams)
@@ -590,9 +592,11 @@ Function sFlashVersionWEBGet (sFlashType)
 		Select Case sFlashType
 			Case "A"
 				'Internet Explorer (and other browsers that support Internet Explorer ActiveX controls and plug-ins)
+				'Internet Explorer - ActiveX
 				sTemp = Mid(objMatches.Item(0).Value ,5,len(objMatches.Item(0).Value )-9) 
 			Case "P"
 				'Firefox, Mozilla, Netscape, Opera (and other plugin-based browsers)
+				'Firefox, Mozilla - NPAPI
 				sTemp = Mid(objMatches.Item(2).Value ,5,len(objMatches.Item(2).Value )-9) 	
 			End Select
 			' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -631,6 +635,27 @@ Function sFlashVersionLocalGet (sFlashType)
 	Call WriteLog("sFlashVersionLocalGet, FlashVersionLocal type [" & sFlashType & "] = " & sTemp,3)
 End Function ' sFlashVersionLocalGet
 
+Function sFlashInstallerLinkGet (sFlashType, sFlashVersion)
+	' возвращает строку-ссылку дл€ скачивани€ плагина соответствующего типа с сайта Adobe
+	' добавлено с версии 17.0.0.188
+	' fpdownload.macromedia.com/pub/flashplayer/pdc/17.0.0.188/install_flash_player_ppapi.exe = Opera_new&Chromium (PPAPI)
+	' fpdownload.macromedia.com/pub/flashplayer/pdc/17.0.0.188/install_flash_player_ax.exe = IE (ActiveX)
+	' fpdownload.macromedia.com/pub/flashplayer/pdc/17.0.0.188/install_flash_player.exe = Firefox&Opera_old (NPAPI)
+	' Const csFlashInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/pdc/"
+	If IsDebug <> 1 then On Error Resume Next
+	Dim  sTemp
+
+	sTemp = csFlashInstallerLink & sFlashVersion
+	Select Case sFlashType
+		Case "A"
+			sTemp = sTemp & "/install_flash_player_ax.exe"
+		Case "P"
+			sTemp = sTemp & "/install_flash_player.exe"
+	End Select
+
+	sFlashInstallerLinkGet = sTemp
+	Call WriteLog("sFlashInstallerLinkGet, FlashInstallerLink, type [" & sFlashType & "] = " & sTemp,3)
+End Function ' sFlashVersionLocalGet
 
 ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ' служебные процедуры и функции - доступ к файлам, реестру, http, отправка почты и т.п.
@@ -757,7 +782,7 @@ Function bParseCommandLine
 			Call WriteLog("WARNING! Downloaded and current FlashActiveX version is NOT identical",1)
 			bNeedToSendLog = True
 			Call WriteLog ("FlashA - START ---",2)
-			Call HttpGetSave(csFlashAInstallerLink, sInstallerPath & csFlashAInstaller)
+			Call HttpGetSave(sFlashInstallerLinkGet("A",sFlashPVersionCurrent), sInstallerPath & csFlashAInstaller)
 			sFlashAVersionCurrent = sFlashVersionWEBGet("A")
 			Call myRun("cmd /c echo " & sFlashAVersionCurrent & "> " & sInstallerPath & csFlashAInstallerVers)
 			sFlashAUpdateStatus       = "UPDATED"
@@ -773,7 +798,7 @@ Function bParseCommandLine
 			bNeedToSendLog = True
 			Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 			Call WriteLog ("FlashP - START ---",2)
-			Call HttpGetSave(csFlashPInstallerLink, sInstallerPath & csFlashPInstaller)
+			Call HttpGetSave(sFlashInstallerLinkGet("P",sFlashPVersionCurrent), sInstallerPath & csFlashPInstaller)
 			sFlashPVersionCurrent = sFlashVersionWEBGet("P")
 			Call myRun("cmd /c echo " & sFlashPVersionCurrent & "> " & sInstallerPath & csFlashPInstallerVers)
 			sFlashPUpdateStatus       = "UPDATED"
