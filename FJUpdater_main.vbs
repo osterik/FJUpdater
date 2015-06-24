@@ -288,7 +288,7 @@ if glbIgnoreFlashA = False Then
 				bNeedToSendLog = True
 				If glbWEBMode Then
 					' получаем ссылку на скачку и скачиваем установщик
-					Call HttpGetSave(sFlashInstallerLinkGet("A",sFlashPVersionCurrent), sInstallerPath & csFlashAInstaller)
+					Call HttpGetSave(sFlashInstallerLinkGet("A",sFlashAVersionCurrent), sInstallerPath & csFlashAInstaller)
 				End If
 				' устанавливаем
 				Call myRun(sInstallerPath & csFlashAInstaller & " " & csFlashInstallerParams)
@@ -782,7 +782,8 @@ Function bParseCommandLine
 			Call WriteLog("WARNING! Downloaded and current FlashActiveX version is NOT identical",1)
 			bNeedToSendLog = True
 			Call WriteLog ("FlashA - START ---",2)
-			Call HttpGetSave(sFlashInstallerLinkGet("A",sFlashPVersionCurrent), sInstallerPath & csFlashAInstaller)
+			sFlashAVersionCurrent = sFlashVersionWEBGet("A")
+			Call HttpGetSave(sFlashInstallerLinkGet("A",sFlashAVersionCurrent), sInstallerPath & csFlashAInstaller)
 			sFlashAVersionCurrent = sFlashVersionWEBGet("A")
 			Call myRun("cmd /c echo " & sFlashAVersionCurrent & "> " & sInstallerPath & csFlashAInstallerVers)
 			sFlashAUpdateStatus       = "UPDATED"
@@ -798,6 +799,7 @@ Function bParseCommandLine
 			bNeedToSendLog = True
 			Call WriteLog("---------------------------------------------------------------------------------------------------",2)
 			Call WriteLog ("FlashP - START ---",2)
+			sFlashPVersionCurrent = sFlashVersionWEBGet("P")
 			Call HttpGetSave(sFlashInstallerLinkGet("P",sFlashPVersionCurrent), sInstallerPath & csFlashPInstaller)
 			sFlashPVersionCurrent = sFlashVersionWEBGet("P")
 			Call myRun("cmd /c echo " & sFlashPVersionCurrent & "> " & sInstallerPath & csFlashPInstallerVers)
