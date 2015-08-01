@@ -4,7 +4,7 @@
 ' 
 ' AUTHOR  : Ilya Kisleyko
 ' E-MAIL  : osterik@gmail.com
-' DATE    : 18.05.2015
+' DATE    : 01.08.2015
 ' NAME    : FJUpdater_main.vbs
 ' COMMENT : Скрипт для проверки актуальности установленных на компьютере версий Java&Flash
 '          и автоматического обновления (через интернет(HTTP) или локальную сеть(SMB)) при необходимости.
@@ -51,6 +51,10 @@
 '/IgnoreFlashA      = не проверять FlashA
 '/IgnoreFlashP      = не проверять FlashP
 '
+'/UninstallJavaOld[:comp]  = деинсталлировать старые версии JRE & Java Auto Updater, не трогая JDK
+' При запуске без параметров - на локальном компьютере, если есть параметр - он трактуется как имя\адрес компьютера,
+' в таком случае выполяняется только данная операция (особый режим)
+
 'Если при разборе параметров встречается параметр с примечанием "особый режим", то он выполняется немедленно,
 'с учётом уже обработанных модификаторов (mail & debug) и производится выход.
 '
@@ -117,7 +121,7 @@ Dim glbIgnoreJava				' не проверять Java Native (32 on 32, 64 on 64)
 Dim glbIgnoreJavaWoW6432			' не проверять Java WoW6432 (32bit on 64bit system)
 Dim glbIgnoreFlashA				' не проверять FlashA
 Dim glbIgnoreFlashP				' не проверять FlashP
-
+Dim glbUninstallJavaOld				' деинсталлировать старые версии JRE & Java Auto Updater, не трогая JDK
 ' глобальные переменные
 Dim sInstallerPath				' путь сохранения инсталляшек при /WEBModeSaveInstall:1
 Dim sLog 					' общий лог, отсылается на почту при ошибках или появлении обновления
@@ -134,7 +138,7 @@ Sub Main
 		wscript.quit
 	End If
 
-	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.8 (c) Ilya Kisleyko, osterik@gmail.com", 2)
+	Call WriteLog(FormatDateTime(Now,2) & " JavaFlashUpdaterAdmin v2.9 (c) Ilya Kisleyko, osterik@gmail.com", 2)
 
 	' пока нет необходимости отправлять логи на почту
 	bNeedToSendLog = false
@@ -166,6 +170,9 @@ Sub Main
 	' при необходимости добавляем слэш в конце рабочего каталога
 	If Right(sInstallerPath,1) <> "\" Then 
 		sInstallerPath = sInstallerPath + "\"
+	End If
+	If Right(csLogsPath,1) <> "\" Then
+		csLogsPath = csLogsPath + "\"
 	End If
 
 if glbIgnoreJava = False Then
@@ -267,6 +274,13 @@ if glbIgnoreJavaWoW6432 = False Then
 	End If
 	Call WriteLog("JavaWoW6432 - FINISH",2)
 End If
+
+if glbUninstallJavaOld = true Then
+	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
+	Call WriteLog("UninstallJavaOld - START",2)
+	Call UninstallJavaOld(".")
+	Call WriteLog("UninstallJavaOld - FINISH",2)
+End If
 	
 if glbIgnoreFlashA = False Then
 	Call WriteLog("---------------------------------------------------------------------------------------------------",2)
@@ -357,6 +371,77 @@ End If
 
 	Call WriteLog("===================================================================================================",2)
 End Sub ' Main
+
+Sub UninstallJavaOld(sComputer)
+	'uninstall old JRE & Java Auto Updater, skip JDK
+	If IsDebug <> 1 then On Error Resume Next
+	if sComputer = "" then sComputer = "."
+
+	'parse installed java version
+	dim sJavaVersionInstalled
+	dim sjvMajor1, sjvMajor2, sjvMiddle, sjvMinor               ' sample:
+	sJavaVersionInstalled = sJavaVersionInstalledGet(sComputer) ' = 1.8.0_51
+	If sJavaVersionInstalled = "" then
+		Call WriteLog("UninstallJavaOld : there is no JAVA on computer " & sComputer,2)
+		Exit Sub
+	End If
+	sjvMajor1 = ExtractWord(0, sJavaVersionInstalled, caDelims) ' = 1
+	sjvMajor2 = ExtractWord(1, sJavaVersionInstalled, caDelims) ' = 8
+	sjvMiddle = ExtractWord(2, sJavaVersionInstalled, caDelims) ' = 0
+	sjvMinor  = ExtractWord(3, sJavaVersionInstalled, caDelims) ' = 51
+
+	'query installed softwate from WMI
+	Dim objWMI, colJava, objJava
+	Dim s,s1,s2,s3,s4
+	Set objWMI = GetObject("winmgmts:{impersonationLevel=impersonate}!\\" & sComputer & "\root\cimv2")
+	'Set colJava = objWMI.ExecQuery ("SELECT * FROM Win32_Product WHERE ( name LIKE '%java 7%' AND name LIKE '%update%' )")
+	Set colJava = objWMI.ExecQuery ("SELECT * FROM Win32_Product WHERE name LIKE '%java%'")
+	For Each objJava in colJava
+		s = objJava.Caption
+
+		' uninstall 'Java Auto Updater'
+		if s = "Java Auto Updater" then
+			Call WriteLog("UninstallJavaOld : UNINSTALL Begin  : " & s,1)
+			objJava.Uninstall
+			Call WriteLog("UninstallJavaOld : UNINSTALL End    : " & s,1)
+		end if
+
+		'
+		s1 = ExtractWord(0, s, caDelims)
+		If lCase(s1) = "java" then
+			s2 = ExtractWord(1, s, caDelims)
+			If lCase(s2) <> "se" then ' it seems to be a JAVA Development Kit, skipping
+				If lCase(s2) = "tm" then ' it seems to be a JAVA 1.6
+					s2 = ExtractWord(2, s, caDelims)
+				End If
+				if s2 < sjvMajor2 then ' previous major release
+					Call WriteLog("UninstallJavaOld : UNINSTALL Begin  : " & s,1)
+					objJava.Uninstall
+					Call WriteLog("UninstallJavaOld : UNINSTALL End    : " & s,1)
+				End If
+				if s2 = sjvMajor2 then ' current major release
+					s3 = ExtractWord(2, s, caDelims)
+					if lCase(s3) = "update" then
+						s4 = ExtractWord(3, s, caDelims)
+						if s4 < sjvMinor then ' previous minor release
+							Call WriteLog("UninstallJavaOld : UNINSTALL Begin  : " & s,1)
+							objJava.Uninstall
+							Call WriteLog("UninstallJavaOld : UNINSTALL End    : " & s,1)
+						Elseif s4 = sjvMinor then ' current release
+							Call WriteLog("UninstallJavaOld : current release  : " & s,2)
+						Else
+							Call WriteLog("UninstallJavaOld : unknown          : " & s,2)
+						End If
+					Else
+						Call WriteLog("UninstallJavaOld : unknown          : " & s,2)
+					end if
+				End If
+			else
+				Call WriteLog("UninstallJavaOld : JDK, skipping    : " & s,2)
+			End If
+		End If
+	Next
+End Sub 'UninstallJavaOld
 
 Sub SendLog
 	dim sComputerName
@@ -457,6 +542,7 @@ Function sJavaVersionInstalledGet (strComputer)
 	' возвращает версию совпадающую с разрядностью системы (32 для 32, 64 для 64)
 	sJavaVersionInstalledGet = sJavaVersionInstalledGetA (strComputer, "")
 End Function ' sJavaVersionInstalledGet
+
 Function sJavaWoW6432VersionInstalledGet (strComputer)
 	' возвращает строку с номером версии Java, установленной на компьютере strComputer, или локальном компьютере (если пусто)
 	' в sWoW6432 = возвращает версию 32-битной Javа на 64-битной системе
@@ -469,7 +555,6 @@ Function sJavaWoW6432VersionInstalledGet (strComputer)
 	End If
 End Function ' sJavaWoW6432VersionInstalledGet
 
-	
 Function sJavaVersionInstalledGetA (strComputer, sRegPathModifier)
 	'sRegPathModifier -  добавляется в путь, если проверяется 32битная версия на 64битной системе. 
 	' должен быть = "\Wow6432Node"
@@ -675,6 +760,7 @@ Function bParseCommandLine
 	glbIgnoreJavaWoW6432 = False
 	glbIgnoreFlashA = False
 	glbIgnoreFlashP = False
+	glbUninstallJavaOld = False
 	
 	bParseCommandLine = true
 	dim objNamed
@@ -876,6 +962,27 @@ Function bParseCommandLine
 	If objNamed.Exists("IgnoreFlashP") Then
 		glbIgnoreFlashP = True
 		Call WriteLog ("bParseCommandLine, IgnoreFlashP",3)
+	End If
+	If objNamed.Exists("UninstallJavaOld") Then
+		If objNamed.Item("UninstallJavaOld") <> "" then
+			dim sComputer
+			sComputer = objNamed.Item("UninstallJavaOld")
+			Call WriteLog ("bParseCommandLine, UninstallJavaOld for comp " & sComputer,3)
+			If sComputer <> "." Then
+				' Пингом проверим что комп включен
+				If IsPingSucsess (sComputer) Then
+					WScript.Echo ("компьютер " & sComputer & " доступен!")
+				Else
+					WScript.Echo ("компьютер " & sComputer & " НЕ доступен!")
+					WScript.Quit
+				End If
+			End If
+			Call UninstallJavaOld(sComputer)
+			WScript.Quit
+		else
+			glbUninstallJavaOld = True
+			Call WriteLog ("bParseCommandLine, UninstallJavaOld",3)
+		End If
 	End If
 	If (objNamed.Exists("?")) or (objNamed.Exists("help"))  Then 	
 		Call PrintHelp()
