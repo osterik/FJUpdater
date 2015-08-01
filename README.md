@@ -24,7 +24,7 @@ cscript \\SERVER\INSTALL\FJUpdater.wsf /WEBModeSaveInstallForce /mail:1 /debug:3
 
 6) Adjust the installation of updates for **other computers** (at startup, using GPO)
 ```sh
-cscript \\SERVER\INSTALL\FJUpdater.wsf /webmode:0 /mail:1 /debug:2
+cscript \\SERVER\INSTALL\FJUpdater.wsf /webmode:0 /mail:1 /debug:2 /UninstallJavaOld
 ```
 
 7) To see current version of installed plugings use
@@ -62,6 +62,10 @@ v.2.8
   to
 
     "http://fpdownload.macromedia.com/pub/flashplayer/pdc/17.0.0.188/install_flash_player_ax.exe"
+
+v.2.9
+
+  added feature for uninstall old Java releases, key /UninstallJavaOld
 
 License
 ----
