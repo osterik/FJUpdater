@@ -913,8 +913,7 @@ Sub mySendMail (sSubject, sTextBody)
 	If IsDebug <> 1 then On Error Resume Next
 	
 	If not IsPingSucsess (csSMTPServer) Then
-		Call WriteLog("Main : ERROR! can't connect to SMTP server!", 1)
-		Exit Sub
+		Call WriteLog("mySendMail : WARNING! can't ping SMTP server!", 1)
 	End If
 	
 	dim objMessage
@@ -951,7 +950,7 @@ Sub mySendMail (sSubject, sTextBody)
 		'Use SSL for the connection (False or True)
 		.Item(cdoURL & "smtpusessl") = cbSMTPUseSSL
 		'Connection Timeout in seconds (the maximum time CDO will try to establish a connection to the SMTP server)
-		.Item(cdoURL & "smtpconnectiontimeout") = 60
+		.Item(cdoURL & "smtpconnectiontimeout") = 10
 		'Update the config.
 		.Update
 	end with
