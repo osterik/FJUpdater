@@ -70,6 +70,7 @@ If IsDebug <> 1 then On Error Resume Next
 
 ' имена файлов с установщиками\номером актуальной версии, которые лежат в локальном репозитории
 Const csJavaInstaller		= "java_installer.exe"
+Const csJavaInstallerMSI	= "java_installer.msi"
 Const csJavaInstaller64		= "java_installer64.exe"
 Const csJavaInstallerVers	= "java_current.txt"
 Const csFlashPInstaller		= "flashP_installer.exe"	' Flash Plugin (Firefox, Mozilla, Netscape, Opera)
@@ -79,7 +80,8 @@ Const csFlashAInstallerVers	= "flashA_current.txt"
 
 '===================================================================================================
 ' где смотреть номера актуальных версий ((при /WEBMode:1)
-Const csJavaVersionCurrentLnk = "http://www.java.com/applet/JreCurrentVersion2.txt"
+' Механизм определения версии Java изменен. см ниже.
+'Const csJavaVersionCurrentLnk = "http://www.java.com/applet/JreCurrentVersion2.txt"
 Const csFlashVersionCurrentLnk = "http://www.adobe.com/software/flash/about/"
 ' и где искать\качать инсталляшки
 Const csJavaInstallerLink   = "http://java.com/en/download/windows_manual.jsp"
@@ -91,6 +93,7 @@ Const csFlashInstallerLink = "http://fpdownload.macromedia.com/pub/flashplayer/p
 'Const csJavaInstallerParams = "/s /v /qn IEXPLORER=1 MOZILLA=1 REBOOT=ReallySuppress JAVAUPDATE=0 WEBSTARTICON=0"   ' JAVA 1.7
 Const csJavaInstallerParams = "/s"     '  JAVA 1.8 code by https://github.com/airosa-id
 Const csFlashInstallerParams = "/install"
+Const csJavaInstallerParamsMSI = "/quiet"
 
 '===================================================================================================
 ' для доступа к реестру, функция RegRead
@@ -128,6 +131,9 @@ Dim sLog 					' общий лог, отсылается на почту при ошибках или появлении обновле
 Dim bNeedToSendLog				' флаг необходимости отправки лога на почту
 Dim sJavaNativeUpdateStatus, sJavaWoW6432UpdateStatus, sFlashAUpdateStatus, sFlashPUpdateStatus		' итоговый статус операций обновления
 Dim sJavaVersionCurrent, sFlashPVersionCurrent, sFlashAVersionCurrent ' номер версии при получении обновлений, используется для записи файла с номером версии
+
+Dim objFSO
+Dim objShell
 
 Sub Main
 	If IsDebug <> 1 then On Error Resume Next
@@ -202,7 +208,6 @@ if glbIgnoreJava = False Then
 						Call HttpGetSave(sJavaGetLinkToDownload("32"), sInstallerPath & csJavaInstaller) 
 					End If
 				End If
-				' устанавливаем
 				If Is64BitSystem (".") = true then
 					Call myRun(sInstallerPath & csJavaInstaller64 & " " & csJavaInstallerParams)
 				else
@@ -252,8 +257,25 @@ if glbIgnoreJavaWoW6432 = False Then
 					' получаем ссылку на скачку и скачиваем установщик
 					Call HttpGetSave(sJavaGetLinkToDownload(""), sInstallerPath & csJavaInstaller)
 				End If
-				' устанавливаем
-				Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
+				' устанавливаем, если установка идет с параметром glbWEBModeSaveInstall то выполняется обычный инсталл, так как она выполняется обычно из-под учетной записи
+				' привилегированного пользователя, а если клиентское обновление, то запускается msi пакет. Это связанно с тем, что при ненативной установке java от имени системы,
+				' а так обычно и происходит при запуске из стартап скрипта, установщик жавы распаковывает msi файл в путь 
+				'C:\Windows\SysWOW64\config\systemprofile\AppData\LocalLow\, а ищет его в каталоге C:\Windows\system32\config\systemprofile\AppData\LocalLow\
+
+				If glbWEBModeSaveInstall then
+					Call WriteLog("Installing EXE package",2)
+					Call myRun(sInstallerPath & csJavaInstaller & " " & csJavaInstallerParams)
+				else
+					Set objFSO = CreateObject("Scripting.FileSystemObject")
+					If objFSO.FileExists(sInstallerPath & csJavaInstallerMSI) then
+						Call WriteLog("Installing MSI package",2)
+						Call myRun("msiexec /i " & sInstallerPath & csJavaInstallerMSI & " " & csJavaInstallerParamsMSI)
+					else
+						Call WriteLog("The MSI package is missing",2)
+					End If
+					Set objFSO = Nothing
+				End If
+
 				Call WriteLog("Install complete, check WoW6432(32bit Java on 64bit OS) Java version again",2)
 
 				' повторно проверяем результат
@@ -262,6 +284,16 @@ if glbIgnoreJavaWoW6432 = False Then
 					If glbWEBModeSaveInstall then
 						' записываем файл с номером актуальной версии установщика
 						Call myRun("cmd /c echo " & sJavaVersionCurrent & "> " & sInstallerPath & csJavaInstallerVers)
+						' копируем распакованую версию java в каталог инсталляции
+						Call WriteLog("Copying MSI package to share directory",2)
+						Set objShell = CreateObject("WScript.Shell")
+						Dim AppData
+						AppData = objShell.expandEnvironmentStrings("%APPDATA%")
+						Set objFSO = CreateObject("Scripting.FileSystemObject")
+						Call WriteLog (AppData & "\..\LocalLow\Sun\Java\jre" & sJavaVersionCurrent & "\jre" & sJavaVersionCurrent & ".msi to " & sInstallerPath & csJavaInstallerMSI,3)
+						objFSO.CopyFile AppData & "\..\LocalLow\Sun\Java\jre" & sJavaVersionCurrent & "\jre" & sJavaVersionCurrent & ".msi", sInstallerPath & csJavaInstallerMSI, True
+						Set objFSO = Nothing
+						Set objShell = Nothing
 					End If
 				Else
 					sJavaWoW6432UpdateStatus = "FAILED"
@@ -597,16 +629,67 @@ Function sJavaVersionWEBGet
 	' возвращает строку с номером актуальной версии JAVA, берёт с сайта
 	If IsDebug <> 1 then On Error Resume Next
 	Dim  sJavaVersionWEB
-	
-	sJavaVersionWEB = sHttpGet (csJavaVersionCurrentLnk)
-	sJavaVersionWEB = Replace(sJavaVersionWEB, vbCrLf, "") ' убираем лишний перевод строки
+'	Закомментированный блок ниже - это простой и надежный механизм определения свежей версии Явы по ссылке. К сожалению с версии 1.8.0_51 он более не обновляется...
+'	sJavaVersionWEB = sHttpGet (csJavaVersionCurrentLnk)
+'	sJavaVersionWEB = Replace(sJavaVersionWEB, vbCrLf, "") ' убираем лишний перевод строки
+'	If sJavaVersionWEB = "" then ' не смогли получить актуальную версию Java по ссылке
+'		Call WriteLog("sJavaVersionWEBGet, ERROR! Can't get current version of Java by the link " & csJavaVersionCurrentLnk,1)
+'		bNeedToSendLog = True
+'		Exit Function
+'	End If
+
+'	Так как файл последней версии Java по ссылке не обновляется (застыл на версии 1.8.0_51), делаем более сложный и менее корректный механизм определения версии Явы.
+'	Но для этого мы вначале должны определить мажорную локальную версию Java.. Увы.
+	Dim  MajorVersion
+	Dim  MinorVersion
+	Dim  sJavaLocalVersion
+	Dim  objShell, objRegExp, objMatches
+
+	Set objShell = WScript.CreateObject("WScript.Shell")
+	MajorVersion = objShell.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion") 
+'	А есть ли Java?	
+	If MajorVersion = "" then
+		Call WriteLog("sJavaVersionWEBGet, ERROR! can't determine the local version of Java ",1)
+		bNeedToSendLog = True
+		Set objShell = nothing
+		Set objRegExp = nothing
+		Set objMatches = nothing
+		Exit Function
+	End If	 
+	MinorVersion = objShell.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\" & MajorVersion & "\MicroVersion")
+	sJavaLocalVersion = MajorVersion & "." & MinorVersion
+
+'	Здесь начинаем парсить ссылку с обновлениями Явы. Так как этой ссылкой пользуется штатная утилита обновления Java - будем считать что она надежна.
+	sJavaVersionWEB = sHttpGet ("https://javadl-esd-secure.oracle.com/update/" & sJavaLocalVersion & "/map-" & sJavaLocalVersion & ".xml")
 	If sJavaVersionWEB = "" then ' не смогли получить актуальную версию Java по ссылке
 		Call WriteLog("sJavaVersionWEBGet, ERROR! Can't get current version of Java by the link " & csJavaVersionCurrentLnk,1)
 		bNeedToSendLog = True
+		Set objShell = nothing
+		Set objRegExp = nothing
+		Set objMatches = nothing
 		Exit Function
 	End If
+	Set objRegExp = CreateObject("VBScript.RegExp")
+'	Парсим урл со строкой на предмет версии
+	objRegExp.Pattern= "<url>(.*[0-9]+\.[0-9]+\.[0-9]+_[0-9]+)-b"
+	objRegExp.Global = True
+	Set objMatches = objRegExp.Execute(sJavaVersionWEB)
+	If objMatches.Count = 0 then
+		Call WriteLog("sJavaVersionWEBGet, ERROR! can't determine the version of Java from parsed data received by the link ",1)
+		bNeedToSendLog = True
+		Set objShell = nothing
+		Set objRegExp = nothing
+		Set objMatches = nothing
+		Exit Function
+	Else
+		sJavaVersionWEB = left(mid(objMatches.Item(0).Value,70,objMatches.Item(0).Length),objMatches.Item(0).Length-71)
+	End If
+
 	sJavaVersionWEBGet = sJavaVersionWEB
 	Call WriteLog("sJavaVersionWEBGet, JavaVersionWEB   = " & sJavaVersionWEB,2)
+	Set objShell = nothing
+	Set objRegExp = nothing
+	Set objMatches = nothing
 End Function ' sJavaVersionWEBGet
 
 Function sJavaVersionLocalGet
